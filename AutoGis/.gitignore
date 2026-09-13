@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+backend/vendor/
+
+# Build outputs
+dist/
+build/
+*.exe
+backend/autogis-backend
+
+# Environment files
+.env
+.env.local
+backend/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temp files
+*.cjs
+*.tmp
+dev_out.log
+out.txt
+error.txt
+metadata.json

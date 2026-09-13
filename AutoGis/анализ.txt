@@ -1,0 +1,72 @@
+Давайте проанализирую текущее состояние проекта:I'll conduct a thorough production readiness assessment of the AutoGis codebase. Let me start by exploring the project structure and examining key files.Now let me examine key Go backend files and configuration:Let me continue reading key auth and handler files, and check for error handling patterns:Now let me check the React frontend for integration and error handling:Let me check for test files, search for TODO comments, and examine common patterns:Let me check the test files to assess test coverage:Now let me check for secrets management and look at the error handling package:Now let me check for loading states, missing environment variables in frontend, and summarize production issues:Let me check the HTTP client configuration and one more important area - middleware setup:Perfect. Now I have enough information to provide a comprehensive production readiness assessment. Let me compile the final response.Отлично, вот краткий оценки вашего проекта:
+
+## 🟡 **Готовность к продакшену: ~6/10**
+
+### 🔴 **Критические проблемы (решить ОБЯЗАТЕЛЬНО):**
+
+1. **Секреты в репозитории** — S3 credentials (`minioadmin/minioadmin`) и JWT secret в `.env` 
+   - Решение: добавить `.env` в `.gitignore`, использовать AWS Secrets Manager или переменные окружения
+
+2. **Слабый JWT secret** — падбэк на `"dev-fallback-secret-change-me"` если генерация случайного не сработает
+   - Решение: требовать 32+ байта случайного secret в production
+
+3. **SSL БД отключен** — `DB_SSLMODE=disable` в `.env`
+   - Решение: `DB_SSLMODE=require` для production
+
+4. **Нет rate limiting** — API можно заспамить POST запросами на создание заявок/сообщений
+   - Решение: добавить rate limiting на все POST/PUT/DELETE endpoints
+
+5. **Mock сервер hardcoded** — `VITE_API_URL=http://localhost:3001` может привести к тому, что в продакшене фронтенд будет делать запросы в localhost
+   - Решение: убрать fallback на localhost, требовать .env для production
+
+6. **Отсутствие бэкапов БД** — нет стратегии восстановления при потере данных
+   - Решение: включить AWS RDS automated backups, WAL archiving
+
+### 🟡 **Важные проблемы:**
+
+1. **Нет CI/CD пайплайна** — нет GitHub Actions, тестирование только ручное
+2. **Минимальное покрытие тестами** — 4 файла, основная логика не тестирована (ищите TODO в коде)
+3. **Нет структурированного логирования** — только `log.Printf`, невозможно дебажить production проблемы
+4. **Нет rate limiting на auth** — только на `/login` и `/refresh`
+5. **Incomplete API endpoints** — reference endpoints (`/api/reference/professions`, `/api/reference/services`) не реализованы
+6. **Mock токены в dev сервере** — `mock-access-token-{timestamp}` не являются реальными JWT
+
+### 🟢 **Хорошее:**
+
+- ✅ Чистая архитектура backend (layered: handler → usecase → repository → domain)
+- ✅ JWT middleware с валидацией
+- ✅ Error handling с custom AppError
+- ✅ Docker + docker-compose для локальной разработки
+- ✅ Code splitting на фронтенде (vendor/ui/router/query/maps)
+- ✅ Graceful shutdown с timeout
+
+## 📋 **Мой рекомендуемый план:**
+
+### **Неделя 1: Безопасность**
+- [ ] Удалить `.env` из git истории: `git filter-branch` или `git-filter-repo`
+- [ ] Создать `.env.example` с плейсхолдерами, добавить `.env` в `.gitignore`
+- [ ] Сгенерировать сильный JWT secret (используйте `openssl rand -base64 32`)
+- [ ] Настроить AWS S3 с IAM role вместо static credentials
+- [ ] Включить SSL на БД: `DB_SSLMODE=require`
+
+### **Неделя 2: Тестирование & Логирование**
+- [ ] Добавить structured logging (`zap` library) в Go backend
+- [ ] Написать unit tests для auth, order, search usecases (target 70%+ coverage)
+- [ ] Добавить GitHub Actions workflow для CI/CD (run tests, lint, build check)
+- [ ] Добавить E2E тесты для критических flows (login → create order → chat)
+
+### **Неделя 3: Infra & Мониторинг**
+- [ ] Добавить Nginx reverse proxy с SSL termination
+- [ ] Настроить resource limits в docker-compose для production
+- [ ] Добавить Prometheus metrics + Grafana dashboard
+- [ ] Настроить error tracking (Sentry)
+- [ ] Реализовать automated backups для PostgreSQL
+
+### **Неделя 4: API доступность**
+- [ ] Реализовать missing endpoints (`/api/reference/*`)
+- [ ] Добавить rate limiting на все POST/PUT/DELETE
+- [ ] Добавить timeout на health check
+- [ ] Убрать console logs из production build
+- [ ] Добавить API error boundary на фронтенде
+
+Хотите, я помогу вам начать с **Security Phase**? Это самое критическое для production.
