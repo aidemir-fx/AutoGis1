@@ -3,6 +3,7 @@ import { Badge, IconButton, Menu, MenuItem, Typography, Box, Divider, Button } f
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
+import { http } from '@common/lib/http';
 
 interface Notification {
     id: number;
@@ -19,11 +20,10 @@ export const NotificationBell: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = fa
     const fetchNotifications = async () => {
         try {
             const role = isAdmin ? 'admin_all' : 'all';
-            const res = await fetch(`/api/notifications?role=${role}`);
-            if (res.ok) {
-                const data = await res.json();
-                setNotifications(data);
-            }
+            const { data } = await http.get<Notification[]>('/notifications', {
+                params: { role },
+            });
+            setNotifications(data);
         } catch (error) {
             console.error("Failed to fetch notifications", error);
         }
@@ -46,11 +46,9 @@ export const NotificationBell: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = fa
     const handleDelete = async (id: number, e: React.MouseEvent) => {
         e.stopPropagation();
         try {
-            const res = await fetch(`/api/notifications/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                setNotifications(prev => prev.filter(n => n.id !== id));
-                toast.success('Уведомление удалено');
-            }
+            await http.delete(`/notifications/${id}`);
+            setNotifications(prev => prev.filter(n => n.id !== id));
+            toast.success('Уведомление удалено');
         } catch (err) {
             console.error(err);
         }
@@ -59,11 +57,9 @@ export const NotificationBell: React.FC<{ isAdmin?: boolean }> = ({ isAdmin = fa
     const handleClearAll = async (e: React.MouseEvent) => {
         e.stopPropagation();
         try {
-            const res = await fetch('/api/notifications', { method: 'DELETE' });
-            if (res.ok) {
-                setNotifications([]);
-                toast.success('Все уведомления очищены');
-            }
+            await http.delete('/notifications');
+            setNotifications([]);
+            toast.success('Все уведомления очищены');
         } catch (err) {
             console.error(err);
         }

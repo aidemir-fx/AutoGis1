@@ -115,6 +115,7 @@ func main() {
 	professionalApplicationHandler := handler.NewProfessionalApplicationHandler(professionalApplicationUseCase)
 	mediaHandler := handler.NewMediaHandler(mediaUseCase)
 	activityHandler := handler.NewActivityHandler(activityUseCase)
+	notificationHandler := handler.NewNotificationHandler(db)
 	chatHub := realtime.NewHub()
 	chatWSHandler := realtime.NewChatWSHandler(chatHub, chatUseCase, jwtService, cfg.FrontendURL)
 	chatHandler := handler.NewChatHandler(chatUseCase, chatHub)
@@ -857,12 +858,11 @@ func setupRoutes(
 			userGroup.GET("", userHandler.GetAllUsers)
 		}
 
-		
-	// Notification routes
-	apiGroup.GET("/notifications", notificationHandler.GetNotifications)
-	apiGroup.POST("/notifications", notificationHandler.CreateNotification)
-	apiGroup.DELETE("/notifications/:id", notificationHandler.DeleteNotification)
-	apiGroup.DELETE("/notifications", notificationHandler.ClearAllNotifications)
+		// Notification routes
+		apiGroup.GET("/notifications", notificationHandler.GetNotifications)
+		apiGroup.POST("/notifications", notificationHandler.CreateNotification)
+		apiGroup.DELETE("/notifications/:id", notificationHandler.DeleteNotification)
+		apiGroup.DELETE("/notifications", notificationHandler.ClearAllNotifications)
 
 		apiGroup.GET("/activity-types", searchHandler.GetActivityTypes)
 		apiGroup.GET("/user-activity-types/my", userHandler.GetCurrentUserActivityTypes)

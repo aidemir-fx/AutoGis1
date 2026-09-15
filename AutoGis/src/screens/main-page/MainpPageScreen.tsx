@@ -16,6 +16,7 @@ import { ProviderShowcaseCard } from "@modules/providers/features/ProviderShowca
 import { ErrorState } from "@common/components";
 import { LogoIcon } from "@common/icons";
 import { useAuth, useCoords, useQueryParams, useUserProfile } from "@common/hooks";
+import { NotificationBell } from "../../components/NotificationBell";
 import {
     ActivityChip,
     AvailableGrid,
@@ -457,6 +458,14 @@ export const MainpPageScreen = () => {
                         <BrandLogo src={LogoIcon} alt="Автогис" />
                     </BrandMark>
                     <TopActions>
+                        {isAuthenticated && profile && (
+                            <NotificationBell
+                                isAdmin={
+                                    profile.role === "ADMIN" ||
+                                    profile.role === "admin"
+                                }
+                            />
+                        )}
                         <ProfileButton
                             aria-label={
                                 isAuthenticated ? "Профиль" : "Войти в профиль"

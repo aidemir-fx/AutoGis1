@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Button, TextField, Select, MenuItem, FormControl, InputLabel, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
+import { http } from '@common/lib/http';
 
 export const AdminNotificationForm: React.FC = () => {
     const [message, setMessage] = useState('');
@@ -9,17 +10,9 @@ export const AdminNotificationForm: React.FC = () => {
     const handleSend = async () => {
         if (!message) return;
         try {
-            const res = await fetch('/api/notifications', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message, targetRole })
-            });
-            if (res.ok) {
-                toast.success('Уведомление успешно отправлено');
-                setMessage('');
-            } else {
-                toast.error('Ошибка при отправке');
-            }
+            await http.post('/notifications', { message, targetRole });
+            toast.success('Уведомление успешно отправлено');
+            setMessage('');
         } catch (e) {
             toast.error('Ошибка сервера');
         }
