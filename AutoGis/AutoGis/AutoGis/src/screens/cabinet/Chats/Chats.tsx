@@ -244,16 +244,13 @@ export function Chats() {
         }
 
         if (!selectedOrderId) {
-            if (!isMobile) {
-                setSelectedOrderId(activeOrders[0].id);
-                setView("chat");
-            }
+            setView("list");
             return;
         }
 
         const hasSelected = activeOrders.some((order) => order.id === selectedOrderId);
         if (!hasSelected) {
-            setSelectedOrderId(isMobile ? null : activeOrders[0].id);
+            setSelectedOrderId(null);
             setView("list");
         }
     }, [activeOrders, archiveOrders, archiveOrderIds, isMobile, requestedOrderId, selectedOrderId, tabParam]);
