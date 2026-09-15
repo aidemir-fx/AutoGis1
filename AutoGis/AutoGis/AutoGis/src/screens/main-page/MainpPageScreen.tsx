@@ -559,6 +559,22 @@ export const MainpPageScreen = () => {
 
     const [tenderMode, setTenderMode] = useState(false);
     const [selectedProviders, setSelectedProviders] = useState<Provider[]>([]);
+    const [showTenderHint, setShowTenderHint] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem("hide_tender_hint") !== "true";
+        } catch {
+            return true;
+        }
+    });
+
+    const handleDismissHintPermanently = useCallback(() => {
+        try {
+            localStorage.setItem("hide_tender_hint", "true");
+        } catch (e) {
+            console.error(e);
+        }
+        setShowTenderHint(false);
+    }, []);
     const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
 
     const toggleProviderSelection = useCallback((provider: Provider) => {
@@ -737,49 +753,48 @@ export const MainpPageScreen = () => {
                         )}
                     </div>
 
-                    {tenderMode && (
+                    {tenderMode && showTenderHint && (
                         <div
                             style={{
-                                marginTop: '14px',
-                                padding: '12px 16px',
+                                marginTop: '12px',
+                                padding: '10px 14px',
                                 background: '#eff6ff',
                                 borderRadius: '12px',
                                 border: '1px solid #bfdbfe',
                                 display: 'flex',
-                                alignItems: 'flex-start',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
                                 gap: '12px',
+                                flexWrap: 'wrap',
                             }}
                         >
-                            <div
-                                style={{
-                                    fontSize: '22px',
-                                    lineHeight: 1,
-                                    flexShrink: 0,
-                                    marginTop: '2px',
-                                }}
-                            >
-                                💡
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '240px' }}>
+                                <span style={{ fontSize: '18px', flexShrink: 0 }}>💡</span>
+                                <div style={{ fontSize: '13px', lineHeight: 1.45, color: '#1e3a8a' }}>
+                                    <strong>Мульти-рассылка:</strong> нажимайте на карточки мастеров или «Выбрать всех», чтобы отправить заявку сразу нескольким специалистам.
+                                </div>
                             </div>
-                            <div style={{ fontSize: '13px', lineHeight: 1.55, color: '#1e3a8a' }}>
-                                <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>
-                                    Как работает мульти-рассылка:
-                                </div>
-                                <div>
-                                    • <strong>Кликайте по карточкам мастеров</strong> в каруселях и списках ниже — на выбранных карточках появится синяя отметка <strong>«✓ Выбран»</strong>.<br />
-                                    • Либо нажмите кнопку <strong>«Выбрать всех в радиусе»</strong>, чтобы сразу отметить всех доступных специалистов.<br />
-                                    • Нажмите <strong>«Отправить заявку»</strong> — ваша заявка уйдет сразу всем отмеченным мастерам, и вы сможете выбрать лучший ответ!
-                                </div>
-                                <div
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                <button
+                                    type="button"
+                                    onClick={handleDismissHintPermanently}
                                     style={{
-                                        marginTop: '8px',
+                                        border: 'none',
+                                        background: 'transparent',
+                                        color: '#2563eb',
+                                        fontSize: '12px',
                                         fontWeight: 600,
-                                        color: selectedProviders.length > 0 ? '#15803d' : '#4b5563',
+                                        cursor: 'pointer',
+                                        padding: '4px 8px',
+                                        borderRadius: '6px',
+                                        whiteSpace: 'nowrap',
+                                        transition: 'background-color 0.15s ease',
                                     }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#dbeafe')}
+                                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                                 >
-                                    {selectedProviders.length > 0
-                                        ? `✓ Выбрано специалистов: ${selectedProviders.length}. Нажмите «Отправить заявку» или продолжайте выбор.`
-                                        : '👉 Пока не выбрано ни одного мастера. Кликните по любой карточке ниже, чтобы выбрать.'}
-                                </div>
+                                    Не показывать больше
+                                </button>
                             </div>
                         </div>
                     )}
