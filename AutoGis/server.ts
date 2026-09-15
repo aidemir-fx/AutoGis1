@@ -340,6 +340,27 @@ async function startServer() {
         }
     });
 
+    
+    app.delete("/api/notifications/:id", async (req: Request, res: Response) => {
+        try {
+            await pool.query("DELETE FROM notifications WHERE id = $1", [req.params.id]);
+            res.json({ success: true });
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ error: "DB Error" });
+        }
+    });
+
+    app.delete("/api/notifications", async (req: Request, res: Response) => {
+        try {
+            await pool.query("DELETE FROM notifications");
+            res.json({ success: true });
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ error: "DB Error" });
+        }
+    });
+
     app.post("/api/notifications", async (req: Request, res: Response) => {
         try {
             const { message, targetRole } = req.body;

@@ -13,6 +13,7 @@ import { StyledLogo, StyledToolbar, UserPartWrpapper } from "./styles";
 import { Button } from "@common/components";
 import { hasCapability } from "@common/lib/userAccess";
 import { User } from "./User";
+import { NotificationBell } from "../../../../../components/NotificationBell";
 import { useUserProfile } from "@common/hooks";
 import { COMPACT_LAYOUT_MEDIA_QUERY } from "../../layoutViewport";
 
@@ -90,6 +91,7 @@ export const Header = () => {
                                             Проф чат
                                         </Button>
                                     )}
+                                    <NotificationBell isAdmin={profile?.role === "ADMIN" || profile?.role === "admin"} />
                                     <UserPartWrpapper onClick={handleUserMenuClick}>
                                         <User user={profile} />
                                     </UserPartWrpapper>
