@@ -14,7 +14,7 @@ import { AppActivityTypes } from "@modules/providers/features/ActivityTypeFilter
 import { fetchCombinedProviders } from "@modules/providers/api";
 import { CreateOrderModal } from "@modules/masters/features/CreateOrderModal";
 import { ProviderShowcaseCard } from "@modules/providers/features/ProviderShowcaseCard";
-import { ErrorState } from "@common/components";
+import { Button, ErrorState } from "@common/components";
 import { LogoIcon } from "@common/icons";
 import { useAuth, useCoords, useQueryParams, useUserProfile } from "@common/hooks";
 import { NotificationBell } from "../../components/NotificationBell";
@@ -445,17 +445,17 @@ export const MainpPageScreen = () => {
     const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
 
     const toggleProviderSelection = useCallback((provider: Provider) => {
+        const targetId = provider.userId || provider.id;
         setSelectedProviders(prev => {
-            const exists = prev.find(p => p.id === provider.id);
-            if (exists) return prev.filter(p => p.id !== provider.id);
+            const exists = prev.some(p => (p.userId || p.id) === targetId);
+            if (exists) return prev.filter(p => (p.userId || p.id) !== targetId);
             return [...prev, provider];
         });
     }, []);
 
     const handleSelectAllInRadius = useCallback(() => {
-        if (!data) return;
-        setSelectedProviders(data.nearbyProviders || []);
-    }, [data]);
+        setSelectedProviders(filteredNearbyProviders || []);
+    }, [filteredNearbyProviders]);
 
     const providersErrorMessage = useMemo(() => {
         if (!error) {
@@ -499,18 +499,23 @@ export const MainpPageScreen = () => {
                         </ProfileButton>
                     </TopActions>
                 </TopBar>
-                <div style={{ padding: '16px', background: '#fff', borderBottom: '1px solid #eee', display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={tenderMode} onChange={e => {
-                            setTenderMode(e.target.checked);
-                            if (!e.target.checked) setSelectedProviders([]);
-                        }} />
-                        <strong>Режим Мульти-рассылки</strong>
+                <div style={{ padding: '12px 16px', background: '#fff', borderBottom: '1px solid #eee', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none' }}>
+                        <input
+                            type="checkbox"
+                            checked={tenderMode}
+                            onChange={e => {
+                                const checked = e.target.checked;
+                                setTenderMode(checked);
+                                if (!checked) setSelectedProviders([]);
+                            }}
+                        />
+                        <strong style={{ fontSize: '15px' }}>Режим Мульти-рассылки</strong>
                     </label>
                     {tenderMode && (
                         <>
                             <Button size="small" variant="outlined" onClick={handleSelectAllInRadius}>
-                                Выбрать всех в радиусе ({data ? data.nearbyProviders.length : 0})
+                                Выбрать всех в радиусе ({filteredNearbyProviders?.length ?? 0})
                             </Button>
                             <Button size="small" variant="primary" disabled={selectedProviders.length === 0} onClick={() => setIsCreateOrderOpen(true)}>
                                 Отправить заявку ({selectedProviders.length})
@@ -622,15 +627,32 @@ export const MainpPageScreen = () => {
                                             </CarouselHead>
                                             <CarouselTrack>
                                                 {providers.length > 0 ? (
-                                                    providers.map((provider) => (
-                                                        <div style={tenderMode && selectedProviders.find(p => p.id === provider.id) ? { outline: '2px solid #007bff', borderRadius: '16px', overflow: 'hidden' } : {}} onClick={tenderMode ? (e) => { e.preventDefault(); e.stopPropagation(); toggleProviderSelection(provider); } : undefined}><ProviderShowcaseCard
-                                                            key={`${provider.activityType}-${provider.id}`}
-                                                            provider={provider}
-                                                            onShowOnMap={
-                                                                handleProviderClick
-                                                            }
-                                                        /></div>
-                                                    ))
+                                                    providers.map((provider) => {
+                                                        const targetId = provider.userId || provider.id;
+                                                        const isSelected = tenderMode && selectedProviders.some(p => (p.userId || p.id) === targetId);
+                                                        return (
+                                                            <div
+                                                                key={`${provider.activityType}-${provider.id}`}
+                                                                style={{
+                                                                    outline: isSelected ? '3px solid #2563eb' : 'none',
+                                                                    borderRadius: '16px',
+                                                                    cursor: tenderMode ? 'pointer' : 'default',
+                                                                    flexShrink: 0,
+                                                                    transition: 'all 0.15s ease',
+                                                                }}
+                                                                onClick={tenderMode ? (e) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    toggleProviderSelection(provider);
+                                                                } : undefined}
+                                                            >
+                                                                <ProviderShowcaseCard
+                                                                    provider={provider}
+                                                                    onShowOnMap={handleProviderClick}
+                                                                />
+                                                            </div>
+                                                        );
+                                                    })
                                                 ) : (
                                                     <EmptyCard>
                                                         {category.empty}
@@ -652,15 +674,31 @@ export const MainpPageScreen = () => {
                                     </CarouselHead>
                                     {availableProviders.length > 0 ? (
                                         <AvailableGrid>
-                                            {availableProviders.map((provider) => (
-                                                <div style={tenderMode && selectedProviders.find(p => p.id === provider.id) ? { outline: '2px solid #007bff', borderRadius: '16px', overflow: 'hidden' } : {}} onClick={tenderMode ? (e) => { e.preventDefault(); e.stopPropagation(); toggleProviderSelection(provider); } : undefined}><ProviderShowcaseCard
-                                                    key={`available-${provider.activityType}-${provider.id}`}
-                                                    provider={provider}
-                                                    onShowOnMap={
-                                                        handleProviderClick
-                                                    }
-                                                /></div>
-                                            ))}
+                                            {availableProviders.map((provider) => {
+                                                const targetId = provider.userId || provider.id;
+                                                const isSelected = tenderMode && selectedProviders.some(p => (p.userId || p.id) === targetId);
+                                                return (
+                                                    <div
+                                                        key={`available-${provider.activityType}-${provider.id}`}
+                                                        style={{
+                                                            outline: isSelected ? '3px solid #2563eb' : 'none',
+                                                            borderRadius: '16px',
+                                                            cursor: tenderMode ? 'pointer' : 'default',
+                                                            transition: 'all 0.15s ease',
+                                                        }}
+                                                        onClick={tenderMode ? (e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            toggleProviderSelection(provider);
+                                                        } : undefined}
+                                                    >
+                                                        <ProviderShowcaseCard
+                                                            provider={provider}
+                                                            onShowOnMap={handleProviderClick}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
                                         </AvailableGrid>
                                     ) : (
                                         <EmptyCard>

@@ -33,7 +33,8 @@ export interface UseLogicReturn {
 }
 
 export function useLogic(props: UseLogicParams): UseLogicReturn {
-    const { onClose, provider } = props;
+    const { onClose, providers } = props;
+    const primaryProvider = providers?.[0];
     const { isAuthenticated } = useAuth();
     const { profile, phone } = useUserProfile();
     const navigate = useNavigate();
@@ -56,7 +57,7 @@ export function useLogic(props: UseLogicParams): UseLogicReturn {
     useEffect(() => {
         const fetchActivityType = async () => {
             try {
-                const providerActivityType = provider.activityType || "master";
+                const providerActivityType = primaryProvider?.activityType || "master";
                 const activityType = await getActivityTypeByName(
                     providerActivityType
                 );
@@ -68,7 +69,7 @@ export function useLogic(props: UseLogicParams): UseLogicReturn {
         };
 
         fetchActivityType();
-    }, [provider.activityType]);
+    }, [primaryProvider?.activityType]);
 
     useEffect(() => {
         if (profile) {
@@ -122,12 +123,14 @@ export function useLogic(props: UseLogicParams): UseLogicReturn {
         }
 
         setIsLoading(true);
+
         try {
-            // Backend expects provider user account ID, not profile ID.
-            const providerUserId = providers?.[0]?.userId || providers?.[0]?.id;
+            const providerUserIds = (providers || [])
+                .map((p) => p.userId || p.id)
+                .filter(Boolean);
 
             await createOrder({
-                providerId: providerUserId,
+                providerIds: providerUserIds,
                 activityTypeId,
                 name: data.name,
                 phone: data.phone,

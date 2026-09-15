@@ -97,7 +97,7 @@ export function CreateOrderModal(props: CreateOrderModalProps) {
                 </DialogHeaderWrapper>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                     Заполните информацию для записи к&nbsp;
-                    <strong>{providers?.length > 1 ? `Выбрано мастеров: ${providers.length}` : providers?.[0]?.fullName}</strong>
+                    <strong>{providers?.length > 1 ? `Выбрано мастеров: ${providers.length}` : (providers?.[0]?.fullName || providers?.[0]?.name || "мастеру")}</strong>
                 </Typography>
             </DialogTitle>
 
