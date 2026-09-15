@@ -132,7 +132,7 @@ func main() {
 	router.Use(middleware.CORSMiddleware(cfg.FrontendURL))
 
 	// Setup routes
-	setupRoutes(router, authHandler, userHandler, orderHandler, searchHandler, reviewHandler, masterHandler, chatHandler, chatWSHandler, businessApplicationHandler, professionalApplicationHandler, mediaHandler, activityHandler, notificationHandler, jwtService, professionalApplicationRepo, db)
+	setupRoutes(router, authHandler, userHandler, orderHandler, searchHandler, reviewHandler, masterHandler, chatHandler, chatWSHandler, businessApplicationHandler, professionalApplicationHandler, mediaHandler, activityHandler, notificationHandler, supportChatHandler, jwtService, professionalApplicationRepo, db)
 
 	// Build the HTTP server explicitly (instead of router.Run) so we can hook
 	// into Shutdown() for graceful drain.
@@ -774,6 +774,7 @@ func setupRoutes(
 	mediaHandler *handler.MediaHandler,
 	activityHandler *handler.ActivityHandler,
 	notificationHandler *handler.NotificationHandler,
+	supportChatHandler *handler.SupportChatHandler,
 	jwtService *jwt.JWTService,
 	professionalApplicationRepo repository.ProfessionalApplicationRepository,
 	db *gorm.DB,
@@ -863,6 +864,13 @@ func setupRoutes(
 		apiGroup.POST("/notifications", notificationHandler.CreateNotification)
 		apiGroup.DELETE("/notifications/:id", notificationHandler.DeleteNotification)
 		apiGroup.DELETE("/notifications", notificationHandler.ClearAllNotifications)
+
+		
+	// Support Chat routes
+	apiGroup.GET("/support/chat", supportChatHandler.GetMyChat)
+	apiGroup.POST("/support/chat", supportChatHandler.SendMessage)
+	apiGroup.GET("/support/chats", supportChatHandler.GetAllChats)
+	apiGroup.GET("/support/unread-count", supportChatHandler.GetUnreadCount)
 
 		apiGroup.GET("/activity-types", searchHandler.GetActivityTypes)
 		apiGroup.GET("/user-activity-types/my", userHandler.GetCurrentUserActivityTypes)

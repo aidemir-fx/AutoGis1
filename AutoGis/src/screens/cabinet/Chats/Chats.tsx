@@ -1,3 +1,5 @@
+import { AdminSupportList } from "@modules/chats/components/AdminSupportList";
+import { SupportChat } from "@modules/chats/components/SupportChat";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Paper, useMediaQuery } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,7 +33,7 @@ import {
 } from "@modules/chats/hooks";
 import { COMPACT_LAYOUT_MEDIA_QUERY } from "@modules/layout/features/layoutViewport";
 
-type ChatTab = "ordinary" | "professional" | "archive";
+type ChatTab = "ordinary" | "professional" | "archive" | "support";
 type ChatView = "list" | "chat";
 
 const ARCHIVE_ORDER_STORAGE_KEY = "autogis.chat.archiveOrderIds.v1";

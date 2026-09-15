@@ -166,6 +166,7 @@ export function useRealtimeChat(options: UseRealtimeChatOptions) {
         }
 
         if (envelope.event === "new_order_message") {
+            playNotificationSound();
             onNewOrderMessageRef.current?.(envelope.data as ChatRealtimeEvent);
             return;
         }

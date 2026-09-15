@@ -171,3 +171,7 @@ func (h *Hub) EmitTypingIndicator(userIDs []string, orderID, userID string, isTy
 		"isTyping": isTyping,
 	})
 }
+
+func (h *Hub) EmitSupportMessage(userIDs []string, message interface{}) {
+	h.emitToUsers(userIDs, "new_support_message", message)
+}
