@@ -1070,6 +1070,9 @@ export const MainpPageScreen = () => {
                 <CreateOrderModal
                     open={isCreateOrderOpen}
                     onClose={() => setIsCreateOrderOpen(false)}
+                    onSuccess={() => {
+                        setSelectedProviders([]);
+                    }}
                     providers={selectedProviders}
                 />
             )}

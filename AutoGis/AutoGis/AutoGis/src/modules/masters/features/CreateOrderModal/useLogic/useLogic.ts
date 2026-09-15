@@ -33,7 +33,7 @@ export interface UseLogicReturn {
 }
 
 export function useLogic(props: UseLogicParams): UseLogicReturn {
-    const { onClose, providers } = props;
+    const { onClose, onSuccess, providers } = props;
     const primaryProvider = providers?.[0];
     const { isAuthenticated } = useAuth();
     const { profile, phone } = useUserProfile();
@@ -141,6 +141,7 @@ export function useLogic(props: UseLogicParams): UseLogicReturn {
             });
 
             toast.success("Заявка успешно отправлена!");
+            onSuccess?.();
             handleClose();
         } catch (error) {
             console.error("Ошибка при создании заявки:", error);
