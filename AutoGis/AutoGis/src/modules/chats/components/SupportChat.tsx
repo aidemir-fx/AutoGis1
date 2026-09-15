@@ -53,7 +53,10 @@ export const SupportChat = ({ targetUserId }: { targetUserId?: string }) => {
                     const envelope = JSON.parse(event.data);
                     if (envelope.event === "new_support_message") {
                         playNotificationSound();
-                        setMessages((prev) => [...prev, envelope.data as SupportMessage]);
+                        setMessages((prev) => {
+                            if (prev.some(m => m.id === envelope.data.id)) return prev;
+                            return [...prev, envelope.data as SupportMessage];
+                        });
                         scrollToBottom();
                     }
                 } catch (e) {}
@@ -84,7 +87,10 @@ export const SupportChat = ({ targetUserId }: { targetUserId?: string }) => {
                 userId: targetUserId
             });
             // We append immediately for snappy UI
-            setMessages((prev) => [...prev, res.data]);
+            setMessages((prev) => {
+                if (prev.some(m => m.id === res.data.id)) return prev;
+                return [...prev, res.data];
+            });
             scrollToBottom();
         } catch (e) {
             console.error("Failed to send message", e);
