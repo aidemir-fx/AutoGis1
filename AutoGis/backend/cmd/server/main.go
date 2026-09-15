@@ -119,6 +119,7 @@ func main() {
 	chatHub := realtime.NewHub()
 	chatWSHandler := realtime.NewChatWSHandler(chatHub, chatUseCase, jwtService, cfg.FrontendURL)
 	chatHandler := handler.NewChatHandler(chatUseCase, chatHub)
+	supportChatHandler := handler.NewSupportChatHandler(db, chatHub)
 	orderHandler.SetHub(chatHub)
 
 	// Start background maintenance jobs. They honour rootCtx and exit when it's
@@ -865,12 +866,11 @@ func setupRoutes(
 		apiGroup.DELETE("/notifications/:id", notificationHandler.DeleteNotification)
 		apiGroup.DELETE("/notifications", notificationHandler.ClearAllNotifications)
 
-		
-	// Support Chat routes
-	apiGroup.GET("/support/chat", supportChatHandler.GetMyChat)
-	apiGroup.POST("/support/chat", supportChatHandler.SendMessage)
-	apiGroup.GET("/support/chats", supportChatHandler.GetAllChats)
-	apiGroup.GET("/support/unread-count", supportChatHandler.GetUnreadCount)
+		// Support Chat routes
+		apiGroup.GET("/support/chat", supportChatHandler.GetMyChat)
+		apiGroup.POST("/support/chat", supportChatHandler.SendMessage)
+		apiGroup.GET("/support/chats", supportChatHandler.GetAllChats)
+		apiGroup.GET("/support/unread-count", supportChatHandler.GetUnreadCount)
 
 		apiGroup.GET("/activity-types", searchHandler.GetActivityTypes)
 		apiGroup.GET("/user-activity-types/my", userHandler.GetCurrentUserActivityTypes)

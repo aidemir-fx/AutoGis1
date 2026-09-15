@@ -2,11 +2,12 @@ package handler
 
 import (
 	"net/http"
+
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"github.com/gmt061/autogis-backend/internal/domain"
 	apperrors "github.com/gmt061/autogis-backend/internal/pkg/errors"
 	"github.com/gmt061/autogis-backend/internal/realtime"
+	"gorm.io/gorm"
 )
 
 type SupportChatHandler struct {
@@ -36,12 +37,12 @@ func (h *SupportChatHandler) GetMyChat(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
 			return
 		}
-		if currentUser.Role != domain.UserRoleAdmin && currentUser.Role != domain.UserRoleModerator {
+		if currentUser.Role != domain.RoleAdmin && currentUser.Role != domain.RoleModerator {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Not allowed"})
 			return
 		}
 		uid = targetUserID
-		
+
 		// Mark messages sent to admin as read
 		h.db.Model(&domain.SupportMessage{}).
 			Where("user_id = ? AND sender_id = ? AND is_read = ?", uid, uid, false).
@@ -81,7 +82,7 @@ func (h *SupportChatHandler) SendMessage(c *gin.Context) {
 		// Admin replying
 		var currentUser domain.User
 		h.db.First(&currentUser, "id = ?", uid)
-		if currentUser.Role != domain.UserRoleAdmin && currentUser.Role != domain.UserRoleModerator {
+		if currentUser.Role != domain.RoleAdmin && currentUser.Role != domain.RoleModerator {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Not allowed"})
 			return
 		}
@@ -98,24 +99,24 @@ func (h *SupportChatHandler) SendMessage(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save message"})
 		return
 	}
-	
+
 	// Load sender details
 	h.db.Preload("Sender").First(&msg, "id = ?", msg.ID)
 
 	// Determine who should receive real-time notification
 	// We'll emit a "new_support_message" event
 	targetWSUsers := []string{chatOwnerID}
-	
+
 	// Notify all admins if user is sending
 	if uid == chatOwnerID {
 		var admins []domain.User
-		h.db.Where("role IN ?", []domain.UserRole{domain.UserRoleAdmin, domain.UserRoleModerator}).Find(&admins)
+		h.db.Where("role IN ?", []domain.UserRole{domain.RoleAdmin, domain.RoleModerator}).Find(&admins)
 		for _, admin := range admins {
 			targetWSUsers = append(targetWSUsers, admin.ID)
 		}
 	}
-	
-	h.hub.EmitSupportMessage(targetWSUsers, msg) 
+
+	h.hub.EmitSupportMessage(targetWSUsers, msg)
 	// but let's just write to the clients directly if possible, or use a workaround)
 	// We'll use a new event "new_support_message" but we don't have EmitSupportMessage in hub yet.
 	// Since we can't easily add it to hub without changing hub.go, we'll just use the raw emit if it's exported.
@@ -139,7 +140,7 @@ func (h *SupportChatHandler) GetAllChats(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
 		return
 	}
-	if currentUser.Role != domain.UserRoleAdmin && currentUser.Role != domain.UserRoleModerator {
+	if currentUser.Role != domain.RoleAdmin && currentUser.Role != domain.RoleModerator {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Not allowed"})
 		return
 	}
@@ -173,12 +174,12 @@ func (h *SupportChatHandler) GetUnreadCount(c *gin.Context) {
 		return
 	}
 	uid := userID.(string)
-	
+
 	var currentUser domain.User
 	h.db.First(&currentUser, "id = ?", uid)
 
 	var count int64
-	if currentUser.Role == domain.UserRoleAdmin || currentUser.Role == domain.UserRoleModerator {
+	if currentUser.Role == domain.RoleAdmin || currentUser.Role == domain.RoleModerator {
 		// Admins see unread messages sent by users (sender_id == user_id)
 		h.db.Model(&domain.SupportMessage{}).Where("sender_id = user_id AND is_read = ?", false).Count(&count)
 	} else {
