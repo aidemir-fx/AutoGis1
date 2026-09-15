@@ -1,8 +1,0 @@
-./interfaces.go
-./postgres.go
-./postgres_activity.go
-./postgres_business_application.go
-./postgres_chat.go
-./postgres_master.go
-./postgres_media.go
-./postgres_professional_application.go
