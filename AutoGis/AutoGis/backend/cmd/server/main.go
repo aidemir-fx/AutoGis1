@@ -239,6 +239,7 @@ func runMigrations(db *gorm.DB, cfg *config.Config) error {
 		&domain.Order{},
 		&domain.Review{},
 		&domain.ChatMessage{},
+		&domain.SupportMessage{},
 		&domain.AutoWash{},
 		&domain.AutoShop{},
 		&domain.AutoService{},
