@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar, Badge, CircularProgress, Divider } from "@mui/material";
+import { Box, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar, Badge, CircularProgress, Divider, IconButton } from "@mui/material";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import { http } from "@common/lib/http";
 import dayjs from "dayjs";
@@ -14,7 +15,7 @@ interface SupportChatSummary {
     unreadCount: number;
 }
 
-export const AdminSupportList = () => {
+export const AdminSupportList = ({ onBack }: { onBack?: () => void }) => {
     const [summaries, setSummaries] = useState<SupportChatSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -40,13 +41,11 @@ export const AdminSupportList = () => {
     if (selectedUser) {
         return (
             <Box height="100%" display="flex" flexDirection="column">
-                <Box p={1}>
-                    <Typography variant="body2" color="primary" sx={{ cursor: 'pointer' }} onClick={() => setSelectedUser(null)}>
-                        ← Назад к списку
-                    </Typography>
-                </Box>
                 <Box flex={1} overflow="hidden">
-                    <SupportChat targetUserId={selectedUser} />
+                    <SupportChat
+                        targetUserId={selectedUser}
+                        onBack={() => setSelectedUser(null)}
+                    />
                 </Box>
             </Box>
         );
@@ -56,9 +55,27 @@ export const AdminSupportList = () => {
 
     return (
         <Box height="100%" bgcolor="white" borderRadius={2} overflow="auto">
-            <Typography variant="h6" p={2} borderBottom="1px solid #e0e0e0">
-                Запросы в поддержку
-            </Typography>
+            <Box p={2} borderBottom="1px solid #e0e0e0" display="flex" alignItems="center" gap={1.5}>
+                {onBack && (
+                    <IconButton
+                        aria-label="Назад"
+                        onClick={onBack}
+                        sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: "14px",
+                            backgroundColor: "#f5f7fa",
+                            color: "#262626",
+                            "&:hover": { backgroundColor: "#eef2f6" },
+                        }}
+                    >
+                        <ArrowBackRoundedIcon fontSize="small" />
+                    </IconButton>
+                )}
+                <Typography variant="h6" fontWeight="bold">
+                    Запросы в поддержку
+                </Typography>
+            </Box>
             <List disablePadding>
                 {summaries.length === 0 ? (
                     <Typography p={3} textAlign="center" color="text.secondary">Нет обращений</Typography>

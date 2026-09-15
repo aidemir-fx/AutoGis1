@@ -537,9 +537,20 @@ export function Chats() {
                 {isListVisible && (
                     tabParam === "support" ? (
                         profile.role === "admin" || profile.role === "moderator" ? (
-                            <AdminSupportList />
+                            <AdminSupportList
+                                onBack={() => {
+                                    setSearchParams({ tab: "ordinary" }, { replace: true });
+                                }}
+                            />
                         ) : (
-                            <SupportChat />
+                            <SupportChat
+                                onBack={() => {
+                                    setSearchParams(
+                                        { tab: hasProfessionalChatAccess ? "professional" : "ordinary" },
+                                        { replace: true }
+                                    );
+                                }}
+                            />
                         )
                     ) : (
                         <ChatList

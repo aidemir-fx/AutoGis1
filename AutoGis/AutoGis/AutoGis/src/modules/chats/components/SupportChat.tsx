@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import { Box, TextField, IconButton, Typography, CircularProgress, Paper, Avatar } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
@@ -17,7 +19,23 @@ interface SupportMessage {
     createdAt: string;
 }
 
-export const SupportChat = ({ targetUserId }: { targetUserId?: string }) => {
+export const SupportChat = ({
+    targetUserId,
+    onBack,
+}: {
+    targetUserId?: string;
+    onBack?: () => void;
+}) => {
+    const navigate = useNavigate();
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
+        } else if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate("/cabinet");
+        }
+    };
     const { profile } = useUserProfile();
     const [messages, setMessages] = useState<SupportMessage[]>([]);
     const [inputValue, setInputValue] = useState("");
@@ -101,13 +119,39 @@ export const SupportChat = ({ targetUserId }: { targetUserId?: string }) => {
 
     return (
         <Box display="flex" flexDirection="column" height="100%" bgcolor="#f5f7fa" borderRadius={2} overflow="hidden">
-            <Box p={2} bgcolor="white" borderBottom="1px solid #e0e0e0" display="flex" alignItems="center" gap={2}>
-                <Avatar sx={{ bgcolor: 'primary.main' }}>
+            <Box
+                p={2}
+                bgcolor="white"
+                borderBottom="1px solid #e0e0e0"
+                display="flex"
+                alignItems="center"
+                gap={1.5}
+            >
+                <IconButton
+                    aria-label="Назад"
+                    onClick={handleBack}
+                    sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "14px",
+                        backgroundColor: "#f5f7fa",
+                        color: "#262626",
+                        "&:hover": { backgroundColor: "#eef2f6" },
+                    }}
+                >
+                    <ArrowBackRoundedIcon fontSize="small" />
+                </IconButton>
+                <Avatar sx={{ bgcolor: "primary.main", width: 40, height: 40 }}>
                     <SupportAgentIcon />
                 </Avatar>
-                <Typography variant="h6" fontWeight="bold">
-                    Служба поддержки
-                </Typography>
+                <Box>
+                    <Typography variant="subtitle1" fontWeight="bold" lineHeight={1.2}>
+                        Служба поддержки
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                        {targetUserId ? "Диалог с пользователем" : "Онлайн-помощь и консультации"}
+                    </Typography>
+                </Box>
             </Box>
 
             <Box flex={1} overflow="auto" p={2} display="flex" flexDirection="column" gap={2}>
