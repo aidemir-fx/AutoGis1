@@ -454,11 +454,7 @@ export const MainpPageScreen = () => {
 
     const handleSelectAllInRadius = useCallback(() => {
         if (!data) return;
-        // The list is actually filteredAllProviders which is derived in render. 
-        // We can just grab it from data, since search bounds are already applied to `data` by the backend.
-        const allProviders = data.flatMap(cat => cat.providers);
-        const unique = Array.from(new Map(allProviders.map(p => [p.id, p])).values());
-        setSelectedProviders(unique);
+        setSelectedProviders(data.nearbyProviders || []);
     }, [data]);
 
     const providersErrorMessage = useMemo(() => {
@@ -514,7 +510,7 @@ export const MainpPageScreen = () => {
                     {tenderMode && (
                         <>
                             <Button size="small" variant="outlined" onClick={handleSelectAllInRadius}>
-                                Выбрать всех в радиусе ({data ? Array.from(new Map(data.flatMap(c => c.providers).map(p => [p.id, p])).values()).length : 0})
+                                Выбрать всех в радиусе ({data ? data.nearbyProviders.length : 0})
                             </Button>
                             <Button size="small" variant="primary" disabled={selectedProviders.length === 0} onClick={() => setIsCreateOrderOpen(true)}>
                                 Отправить заявку ({selectedProviders.length})
