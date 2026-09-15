@@ -38,6 +38,10 @@ func NewOrderUseCase(
 }
 
 func (uc *OrderUseCase) CreateOrder(ctx context.Context, customerID string, req *domain.CreateOrderRequest) (*domain.OrderResponse, error) {
+	if len(req.ProviderIDs) == 0 {
+		return nil, apperrors.New("VALIDATION_FAILED", "at least one provider is required", 400)
+	}
+	providerID := req.ProviderIDs[0]
 	req.Name = strings.TrimSpace(req.Name)
 	req.Phone = strings.TrimSpace(req.Phone)
 	req.CarBrand = strings.TrimSpace(req.CarBrand)
@@ -57,7 +61,7 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, customerID string, req 
 	}
 
 	// Validate provider exists
-	provider, err := uc.userRepo.GetByID(ctx, req.ProviderID)
+	provider, err := uc.userRepo.GetByID(ctx, providerID)
 	if err != nil {
 		return nil, apperrors.ErrUserNotFound
 	}
@@ -80,7 +84,7 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, customerID string, req 
 	// Validate provider actually offers the requested activity type.
 	// Без этой проверки клиент мог бы создать заявку на любого существующего
 	// пользователя, что приводит к мусорным и неконсистентным заказам.
-	uats, err := uc.userActivityTypeRepo.GetByUserID(ctx, req.ProviderID)
+	uats, err := uc.userActivityTypeRepo.GetByUserID(ctx, providerID)
 	if err != nil {
 		return nil, apperrors.ErrInternalServer
 	}
@@ -109,10 +113,6 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, customerID string, req 
 		PhotoAssetIDs:  req.PhotoAssetIDs,
 		Price:          req.Price,
 		Status:         domain.OrderStatusPending,
-	}
-	
-	if len(req.ProviderIDs) == 0 {
-		return nil, apperrors.New("VALIDATION_FAILED", "at least one provider is required", 400)
 	}
 
 	if err := uc.orderRepo.CreateWithInvitations(ctx, order, req.ProviderIDs); err != nil {
@@ -174,7 +174,7 @@ func (uc *OrderUseCase) GetProviderOrders(ctx context.Context, providerID string
 	if err != nil {
 		return nil, apperrors.ErrInternalServer
 	}
-	
+
 	invitations, err := uc.orderRepo.GetOrderInvitations(ctx, providerID)
 	if err != nil {
 		return nil, apperrors.ErrInternalServer
@@ -203,7 +203,7 @@ func (uc *OrderUseCase) UpdateOrderStatus(ctx context.Context, id string, actorI
 	if !canAccessOrder(order, actorID, actorRole) {
 		return nil, apperrors.New("FORBIDDEN", "Forbidden", 403)
 	}
-	if actorRole != domain.RoleAdmin && actorID != order.ProviderID {
+	if actorRole != domain.RoleAdmin && actorID != providerIDOf(order) {
 		return nil, apperrors.New("FORBIDDEN", "Only provider can update order status", 403)
 	}
 
@@ -238,7 +238,7 @@ func (uc *OrderUseCase) UpdateOrderStatus(ctx context.Context, id string, actorI
 		}
 
 		slotEnd := confirmedAt.Add(60 * time.Minute)
-		hasConflict, conflictErr := uc.orderRepo.HasProviderScheduleConflict(ctx, order.ProviderID, confirmedAt, slotEnd, order.ID)
+		hasConflict, conflictErr := uc.orderRepo.HasProviderScheduleConflict(ctx, providerIDOf(order), confirmedAt, slotEnd, order.ID)
 		if conflictErr != nil {
 			return nil, apperrors.ErrInternalServer
 		}
@@ -269,7 +269,7 @@ func (uc *OrderUseCase) UpdateOrderStatus(ctx context.Context, id string, actorI
 	if statusMessage != "" {
 		messageSenderID := actorID
 		if messageSenderID == "" {
-			messageSenderID = order.ProviderID
+			messageSenderID = providerIDOf(order)
 		}
 		createdMessage = &domain.ChatMessage{
 			OrderID:  order.ID,
@@ -343,7 +343,7 @@ func (uc *OrderUseCase) orderToResponse(order *domain.Order) *domain.OrderRespon
 	return &domain.OrderResponse{
 		ID:                order.ID,
 		CustomerID:        order.CustomerID,
-		ProviderID:        order.ProviderID,
+		ProviderID:        providerIDOf(order),
 		ActivityTypeID:    order.ActivityTypeID,
 		Name:              order.Name,
 		Phone:             order.Phone,
@@ -405,7 +405,7 @@ func canAccessOrder(order *domain.Order, actorID string, actorRole domain.UserRo
 	if actorRole == domain.RoleAdmin {
 		return true
 	}
-	return order.CustomerID == actorID || order.ProviderID == actorID
+	return order.CustomerID == actorID || providerIDOf(order) == actorID
 }
 
 func formatNullableTime(t *time.Time) *string {
@@ -445,32 +445,11 @@ func buildStatusChatMessage(order *domain.Order, status domain.OrderStatus) stri
 }
 
 func (uc *OrderUseCase) AcceptInvitation(ctx context.Context, orderID string, providerID string) (*domain.OrderResponse, error) {
-	// First check if order exists
-	order, err := uc.orderRepo.GetByID(ctx, orderID)
-	if err != nil {
-		return nil, errors.Wrap(errors.ErrNotFound, "order not found")
-	}
-	
-	if order.ProviderID != nil {
-		return nil, errors.Wrap(errors.ErrConflict, "order is already accepted by another provider")
-	}
-
-	if err := uc.orderRepo.AcceptInvitation(ctx, orderID, providerID); err != nil {
-		return nil, errors.Wrap(errors.ErrInternal, "failed to accept invitation")
-	}
-	
-	// fetch updated order
-	updatedOrder, _ := uc.orderRepo.GetByID(ctx, orderID)
-	
-	return uc.orderToResponse(updatedOrder), nil
-}
-
-func (uc *OrderUseCase) AcceptInvitation(ctx context.Context, orderID string, providerID string) (*domain.OrderResponse, error) {
 	order, err := uc.orderRepo.GetByID(ctx, orderID)
 	if err != nil {
 		return nil, apperrors.ErrOrderNotFound
 	}
-	
+
 	if order.ProviderID != nil {
 		return nil, apperrors.New("CONFLICT", "Order already accepted", 409)
 	}
@@ -478,7 +457,14 @@ func (uc *OrderUseCase) AcceptInvitation(ctx context.Context, orderID string, pr
 	if err := uc.orderRepo.AcceptInvitation(ctx, orderID, providerID); err != nil {
 		return nil, apperrors.ErrInternalServer
 	}
-	
+
 	updatedOrder, _ := uc.orderRepo.GetByID(ctx, orderID)
 	return uc.orderToResponse(updatedOrder), nil
+}
+
+func providerIDOf(order *domain.Order) string {
+	if order == nil || order.ProviderID == nil {
+		return ""
+	}
+	return *order.ProviderID
 }

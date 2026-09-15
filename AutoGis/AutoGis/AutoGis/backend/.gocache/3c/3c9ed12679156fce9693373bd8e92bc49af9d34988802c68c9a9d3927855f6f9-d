@@ -1,0 +1,3 @@
+./column_type.go
+./index.go
+./migrator.go

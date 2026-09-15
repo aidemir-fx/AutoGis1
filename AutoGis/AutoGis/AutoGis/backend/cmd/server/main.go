@@ -237,7 +237,7 @@ func runMigrations(db *gorm.DB, cfg *config.Config) error {
 		&domain.ActivityType{},
 		&domain.UserActivityType{},
 		&domain.Order{},
-t	&domain.OrderInvitation{},
+		&domain.OrderInvitation{},
 		&domain.Review{},
 		&domain.ChatMessage{},
 		&domain.SupportMessage{},
@@ -881,7 +881,7 @@ func setupRoutes(
 		orderGroup := apiGroup.Group("/orders")
 		{
 			orderGroup.POST("", orderHandler.CreateOrder)
-t		orderGroup.POST("/:id/accept", orderHandler.AcceptInvitation)
+			orderGroup.POST("/:id/accept", orderHandler.AcceptInvitation)
 			orderGroup.GET("/my", orderHandler.GetMyCustomerOrders)
 			orderGroup.GET("/provider", orderHandler.GetMyProviderOrders)
 			orderGroup.GET("/:id", orderHandler.GetOrder)

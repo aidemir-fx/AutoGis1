@@ -147,7 +147,7 @@ func (h *ChatWSHandler) handleJoin(ctx context.Context, client *wsClient, incomi
 	}
 	for _, msg := range updatedMessages {
 		h.hub.EmitMessageStatusUpdated(
-			[]string{order.CustomerID, order.ProviderID},
+			orderParticipantIDs(order),
 			req.OrderID,
 			msg.ID,
 			domain.ChatMessageStatusRead,
@@ -174,7 +174,7 @@ func (h *ChatWSHandler) handleTyping(ctx context.Context, client *wsClient, inco
 		return
 	}
 
-	recipients := []string{order.CustomerID, order.ProviderID}
+	recipients := orderParticipantIDs(order)
 	h.hub.EmitTypingIndicator(recipients, req.OrderID, client.userID, isTyping)
 }
 
@@ -207,7 +207,10 @@ func (h *ChatWSHandler) handleSendMessage(ctx context.Context, client *wsClient,
 
 	recipientID := order.CustomerID
 	if recipientID == client.userID {
-		recipientID = order.ProviderID
+		if order.ProviderID == nil {
+			return
+		}
+		recipientID = *order.ProviderID
 	}
 
 	if h.hub.IsUserInOrderRoom(recipientID, req.OrderID) {
@@ -218,7 +221,7 @@ func (h *ChatWSHandler) handleSendMessage(ctx context.Context, client *wsClient,
 		_ = h.chatUse.UpdateMessageStatus(ctx, msg.ID, domain.ChatMessageStatusDelivered)
 	}
 
-	recipients := []string{order.CustomerID, order.ProviderID}
+	recipients := orderParticipantIDs(order)
 	h.hub.EmitNewOrderMessage(recipients, req.OrderID, msg)
 	h.hub.EmitMessageStatusUpdated(recipients, req.OrderID, msg.ID, msg.Status)
 
@@ -230,6 +233,14 @@ func (h *ChatWSHandler) handleSendMessage(ctx context.Context, client *wsClient,
 			"message": msg,
 		},
 	})
+}
+
+func orderParticipantIDs(order *domain.Order) []string {
+	ids := []string{order.CustomerID}
+	if order.ProviderID != nil && *order.ProviderID != "" {
+		ids = append(ids, *order.ProviderID)
+	}
+	return ids
 }
 
 func tokenFromRequest(req *http.Request) string {

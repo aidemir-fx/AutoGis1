@@ -9,7 +9,7 @@ import (
 func TestCanAccessOrder(t *testing.T) {
 	order := &domain.Order{
 		CustomerID: "customer-1",
-		ProviderID: "provider-1",
+		ProviderID: stringPointer("provider-1"),
 	}
 
 	tests := []struct {
@@ -53,4 +53,8 @@ func TestCanAccessOrder(t *testing.T) {
 			}
 		})
 	}
+}
+
+func stringPointer(value string) *string {
+	return &value
 }

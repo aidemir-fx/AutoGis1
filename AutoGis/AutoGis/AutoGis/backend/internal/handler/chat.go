@@ -36,7 +36,7 @@ func (h *ChatHandler) GetOrderChat(c *gin.Context) {
 		for _, msg := range updatedMessages {
 			if getErr == nil && chat != nil && chat.Order != nil {
 				h.hub.EmitMessageStatusUpdated(
-					[]string{chat.Order.CustomerID, chat.Order.ProviderID},
+					orderParticipantIDs(chat.Order),
 					orderID,
 					msg.ID,
 					domain.ChatMessageStatusRead,
@@ -100,20 +100,48 @@ func (h *ChatHandler) SendOrderMessage(c *gin.Context) {
 
 	recipientID := order.CustomerID
 	if recipientID == userID.(string) {
-		recipientID = order.ProviderID
+		if order.ProviderID != nil {
+			recipientID = *order.ProviderID
+		} else {
+			recipientID = ""
+		}
 	}
 
-	if h.hub.IsUserInOrderRoom(recipientID, orderID) {
+	if recipientID != "" && h.hub.IsUserInOrderRoom(recipientID, orderID) {
 		msg.Status = domain.ChatMessageStatusRead
 		_ = h.chatUseCase.UpdateMessageStatus(c.Request.Context(), msg.ID, domain.ChatMessageStatusRead)
-	} else if h.hub.IsUserOnline(recipientID) {
+	} else if recipientID != "" && h.hub.IsUserOnline(recipientID) {
 		msg.Status = domain.ChatMessageStatusDelivered
 		_ = h.chatUseCase.UpdateMessageStatus(c.Request.Context(), msg.ID, domain.ChatMessageStatusDelivered)
 	}
 
-	userIDs := []string{order.CustomerID, order.ProviderID}
+	userIDs := orderEntityParticipantIDs(order)
 	h.hub.EmitNewOrderMessage(userIDs, orderID, msg)
 	h.hub.EmitMessageStatusUpdated(userIDs, orderID, msg.ID, msg.Status)
 
 	c.JSON(http.StatusCreated, msg)
+}
+
+func orderParticipantIDs(order *domain.OrderResponse) []string {
+	if order == nil {
+		return nil
+	}
+
+	userIDs := []string{order.CustomerID}
+	if order.ProviderID != "" {
+		userIDs = append(userIDs, order.ProviderID)
+	}
+	return userIDs
+}
+
+func orderEntityParticipantIDs(order *domain.Order) []string {
+	if order == nil {
+		return nil
+	}
+
+	userIDs := []string{order.CustomerID}
+	if order.ProviderID != nil && *order.ProviderID != "" {
+		userIDs = append(userIDs, *order.ProviderID)
+	}
+	return userIDs
 }

@@ -473,10 +473,10 @@ func (h *OrderHandler) AcceptInvitation(c *gin.Context) {
 	orderID := c.Param("id")
 
 	// Call use case
-	order, err := h.orderUC.AcceptInvitation(c.Request.Context(), orderID, userID.(string))
+	order, err := h.orderUseCase.AcceptInvitation(c.Request.Context(), orderID, userID.(string))
 	if err != nil {
 		if appErr, ok := err.(*apperrors.AppError); ok {
-			c.JSON(appErr.HTTPCode, appErr)
+			c.JSON(appErr.Status, appErr)
 			return
 		}
 		c.JSON(http.StatusInternalServerError, apperrors.ErrInternalServer)

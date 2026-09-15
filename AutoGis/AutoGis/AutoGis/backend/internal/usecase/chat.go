@@ -129,7 +129,7 @@ func (uc *ChatUseCase) MarkMessagesAsRead(ctx context.Context, orderID, readerID
 
 	senderID := order.CustomerID
 	if senderID == readerID {
-		senderID = order.ProviderID
+		senderID = providerIDOf(order)
 	}
 
 	updated, err := uc.messageRepo.UpdateStatusByOrderAndSender(
@@ -174,7 +174,7 @@ func orderToResponse(order *domain.Order) *domain.OrderResponse {
 	return &domain.OrderResponse{
 		ID:                order.ID,
 		CustomerID:        order.CustomerID,
-		ProviderID:        order.ProviderID,
+		ProviderID:        providerIDOf(order),
 		ActivityTypeID:    order.ActivityTypeID,
 		Name:              order.Name,
 		Phone:             order.Phone,
@@ -223,5 +223,5 @@ func chatMessageToResponse(message *domain.ChatMessage) *domain.ChatMessageRespo
 }
 
 func isOrderParticipant(order *domain.Order, userID string) bool {
-	return order.CustomerID == userID || order.ProviderID == userID
+	return order.CustomerID == userID || providerIDOf(order) == userID
 }
