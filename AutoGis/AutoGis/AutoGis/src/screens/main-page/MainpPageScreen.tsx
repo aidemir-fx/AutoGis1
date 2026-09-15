@@ -173,7 +173,124 @@ function getInitials(name?: string | null): string {
         .toUpperCase();
 }
 
+
+interface SelectableProviderCardProps {
+    key?: string;
+    provider: Provider;
+    tenderMode: boolean;
+    isSelected: boolean;
+    onToggle: (provider: Provider) => void;
+    onShowOnMap: (provider: Provider) => void;
+    isCarouselItem?: boolean;
+}
+
+const SelectableProviderCard = ({
+    provider,
+    tenderMode,
+    isSelected,
+    onToggle,
+    onShowOnMap,
+    isCarouselItem = false,
+}: SelectableProviderCardProps) => {
+    return (
+        <div
+            style={{
+                position: 'relative',
+                borderRadius: '16px',
+                flexShrink: isCarouselItem ? 0 : undefined,
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: isSelected
+                    ? '0 0 0 3px #2563eb, 0 12px 28px -4px rgba(37, 99, 235, 0.3)'
+                    : tenderMode
+                        ? '0 2px 10px rgba(0, 0, 0, 0.08)'
+                        : 'none',
+                transform: isSelected ? 'scale(1.015)' : 'none',
+                userSelect: 'none',
+            }}
+        >
+            {tenderMode && (
+                <>
+                    {/* Visual indicator badge in the top right corner */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            zIndex: 10,
+                            pointerEvents: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: isSelected ? '5px 12px 5px 8px' : '5px 10px 5px 8px',
+                            background: isSelected ? '#2563eb' : 'rgba(255, 255, 255, 0.96)',
+                            color: isSelected ? '#ffffff' : '#1d4ed8',
+                            border: isSelected ? '2px solid #1d4ed8' : '2px solid #3b82f6',
+                            borderRadius: '20px',
+                            boxShadow: isSelected
+                                ? '0 4px 14px rgba(37, 99, 235, 0.45)'
+                                : '0 2px 8px rgba(0, 0, 0, 0.15)',
+                            fontWeight: 700,
+                            fontSize: '12px',
+                            backdropFilter: 'blur(4px)',
+                            transition: 'all 0.15s ease',
+                        }}
+                    >
+                        <div
+                            style={{
+                                width: 18,
+                                height: 18,
+                                borderRadius: '50%',
+                                background: isSelected ? '#ffffff' : '#eff6ff',
+                                color: '#2563eb',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: isSelected ? '12px' : '15px',
+                                fontWeight: 800,
+                                lineHeight: 1,
+                            }}
+                        >
+                            {isSelected ? '✓' : '+'}
+                        </div>
+                        <span>{isSelected ? 'Выбран' : 'Выбрать'}</span>
+                    </div>
+
+                    {/* Click interceptor across the entire card */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            zIndex: 8,
+                            cursor: 'pointer',
+                            borderRadius: '16px',
+                            background: isSelected
+                                ? 'rgba(37, 99, 235, 0.04)'
+                                : 'transparent',
+                        }}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onToggle(provider);
+                        }}
+                        title={
+                            isSelected
+                                ? 'Нажмите, чтобы убрать из рассылки'
+                                : 'Нажмите, чтобы добавить в рассылку'
+                        }
+                    />
+                </>
+            )}
+
+            <ProviderShowcaseCard
+                provider={provider}
+                onShowOnMap={onShowOnMap}
+            />
+        </div>
+    );
+};
+
 export const MainpPageScreen = () => {
+
     const [query, setQuery] = useState<string[]>([]);
     const [isMapAttentionVisible, setIsMapAttentionVisible] = useState(false);
     const [mapAttentionKey, setMapAttentionKey] = useState(0);
@@ -453,6 +570,10 @@ export const MainpPageScreen = () => {
         });
     }, []);
 
+    const handleDeselectAll = useCallback(() => {
+        setSelectedProviders([]);
+    }, []);
+
     const handleSelectAllInRadius = useCallback(() => {
         setSelectedProviders(filteredNearbyProviders || []);
     }, [filteredNearbyProviders]);
@@ -499,28 +620,168 @@ export const MainpPageScreen = () => {
                         </ProfileButton>
                     </TopActions>
                 </TopBar>
-                <div style={{ padding: '12px 16px', background: '#fff', borderBottom: '1px solid #eee', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none' }}>
-                        <input
-                            type="checkbox"
-                            checked={tenderMode}
-                            onChange={e => {
-                                const checked = e.target.checked;
-                                setTenderMode(checked);
-                                if (!checked) setSelectedProviders([]);
+                <div
+                    style={{
+                        margin: '12px 0 20px',
+                        padding: '16px 20px',
+                        background: '#ffffff',
+                        borderRadius: '16px',
+                        border: tenderMode ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                        boxShadow: tenderMode
+                            ? '0 8px 24px rgba(37, 99, 235, 0.1)'
+                            : '0 1px 3px rgba(0, 0, 0, 0.04)',
+                        transition: 'all 0.2s ease',
+                    }}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '12px',
+                        }}
+                    >
+                        <label
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
                             }}
-                        />
-                        <strong style={{ fontSize: '15px' }}>Режим Мульти-рассылки</strong>
-                    </label>
+                        >
+                            <input
+                                type="checkbox"
+                                checked={tenderMode}
+                                onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    setTenderMode(checked);
+                                    if (!checked) setSelectedProviders([]);
+                                }}
+                                style={{
+                                    width: '20px',
+                                    height: '20px',
+                                    cursor: 'pointer',
+                                    accentColor: '#2563eb',
+                                }}
+                            />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <strong style={{ fontSize: '16px', color: '#111827' }}>
+                                    Режим Мульти-рассылки
+                                </strong>
+                                {tenderMode && (
+                                    <span
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '5px',
+                                            padding: '3px 8px',
+                                            borderRadius: '12px',
+                                            fontSize: '11px',
+                                            fontWeight: 700,
+                                            background: '#dbeafe',
+                                            color: '#1d4ed8',
+                                            letterSpacing: '0.02em',
+                                            textTransform: 'uppercase',
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                width: '6px',
+                                                height: '6px',
+                                                borderRadius: '50%',
+                                                background: '#2563eb',
+                                            }}
+                                        />
+                                        Активен
+                                    </span>
+                                )}
+                            </div>
+                        </label>
+
+                        {tenderMode && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    flexWrap: 'wrap',
+                                }}
+                            >
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={handleSelectAllInRadius}
+                                >
+                                    Выбрать всех в радиусе ({filteredNearbyProviders?.length ?? 0})
+                                </Button>
+                                {selectedProviders.length > 0 && (
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        onClick={handleDeselectAll}
+                                    >
+                                        Сбросить
+                                    </Button>
+                                )}
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    disabled={selectedProviders.length === 0}
+                                    onClick={() => setIsCreateOrderOpen(true)}
+                                >
+                                    Отправить заявку ({selectedProviders.length})
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
                     {tenderMode && (
-                        <>
-                            <Button size="small" variant="outlined" onClick={handleSelectAllInRadius}>
-                                Выбрать всех в радиусе ({filteredNearbyProviders?.length ?? 0})
-                            </Button>
-                            <Button size="small" variant="primary" disabled={selectedProviders.length === 0} onClick={() => setIsCreateOrderOpen(true)}>
-                                Отправить заявку ({selectedProviders.length})
-                            </Button>
-                        </>
+                        <div
+                            style={{
+                                marginTop: '14px',
+                                padding: '12px 16px',
+                                background: '#eff6ff',
+                                borderRadius: '12px',
+                                border: '1px solid #bfdbfe',
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '12px',
+                            }}
+                        >
+                            <div
+                                style={{
+                                    fontSize: '22px',
+                                    lineHeight: 1,
+                                    flexShrink: 0,
+                                    marginTop: '2px',
+                                }}
+                            >
+                                💡
+                            </div>
+                            <div style={{ fontSize: '13px', lineHeight: 1.55, color: '#1e3a8a' }}>
+                                <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>
+                                    Как работает мульти-рассылка:
+                                </div>
+                                <div>
+                                    • <strong>Кликайте по карточкам мастеров</strong> в каруселях и списках ниже — на выбранных карточках появится синяя отметка <strong>«✓ Выбран»</strong>.<br />
+                                    • Либо нажмите кнопку <strong>«Выбрать всех в радиусе»</strong>, чтобы сразу отметить всех доступных специалистов.<br />
+                                    • Нажмите <strong>«Отправить заявку»</strong> — ваша заявка уйдет сразу всем отмеченным мастерам, и вы сможете выбрать лучший ответ!
+                                </div>
+                                <div
+                                    style={{
+                                        marginTop: '8px',
+                                        fontWeight: 600,
+                                        color: selectedProviders.length > 0 ? '#15803d' : '#4b5563',
+                                    }}
+                                >
+                                    {selectedProviders.length > 0
+                                        ? `✓ Выбрано специалистов: ${selectedProviders.length}. Нажмите «Отправить заявку» или продолжайте выбор.`
+                                        : '👉 Пока не выбрано ни одного мастера. Кликните по любой карточке ниже, чтобы выбрать.'}
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </div>
 
@@ -631,26 +892,15 @@ export const MainpPageScreen = () => {
                                                         const targetId = provider.userId || provider.id;
                                                         const isSelected = tenderMode && selectedProviders.some(p => (p.userId || p.id) === targetId);
                                                         return (
-                                                            <div
+                                                            <SelectableProviderCard
                                                                 key={`${provider.activityType}-${provider.id}`}
-                                                                style={{
-                                                                    outline: isSelected ? '3px solid #2563eb' : 'none',
-                                                                    borderRadius: '16px',
-                                                                    cursor: tenderMode ? 'pointer' : 'default',
-                                                                    flexShrink: 0,
-                                                                    transition: 'all 0.15s ease',
-                                                                }}
-                                                                onClick={tenderMode ? (e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    toggleProviderSelection(provider);
-                                                                } : undefined}
-                                                            >
-                                                                <ProviderShowcaseCard
-                                                                    provider={provider}
-                                                                    onShowOnMap={handleProviderClick}
-                                                                />
-                                                            </div>
+                                                                provider={provider}
+                                                                tenderMode={tenderMode}
+                                                                isSelected={isSelected}
+                                                                onToggle={toggleProviderSelection}
+                                                                onShowOnMap={handleProviderClick}
+                                                                isCarouselItem
+                                                            />
                                                         );
                                                     })
                                                 ) : (
@@ -678,25 +928,14 @@ export const MainpPageScreen = () => {
                                                 const targetId = provider.userId || provider.id;
                                                 const isSelected = tenderMode && selectedProviders.some(p => (p.userId || p.id) === targetId);
                                                 return (
-                                                    <div
+                                                    <SelectableProviderCard
                                                         key={`available-${provider.activityType}-${provider.id}`}
-                                                        style={{
-                                                            outline: isSelected ? '3px solid #2563eb' : 'none',
-                                                            borderRadius: '16px',
-                                                            cursor: tenderMode ? 'pointer' : 'default',
-                                                            transition: 'all 0.15s ease',
-                                                        }}
-                                                        onClick={tenderMode ? (e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            toggleProviderSelection(provider);
-                                                        } : undefined}
-                                                    >
-                                                        <ProviderShowcaseCard
-                                                            provider={provider}
-                                                            onShowOnMap={handleProviderClick}
-                                                        />
-                                                    </div>
+                                                        provider={provider}
+                                                        tenderMode={tenderMode}
+                                                        isSelected={isSelected}
+                                                        onToggle={toggleProviderSelection}
+                                                        onShowOnMap={handleProviderClick}
+                                                    />
                                                 );
                                             })}
                                         </AvailableGrid>
@@ -712,6 +951,119 @@ export const MainpPageScreen = () => {
                     </>
                 )}
             </HomeShell>
+                        {tenderMode && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: '24px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 1150,
+                        width: 'calc(100% - 32px)',
+                        maxWidth: '620px',
+                        background: 'rgba(255, 255, 255, 0.96)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: '18px',
+                        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+                        padding: '12px 18px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        flexWrap: 'wrap',
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div
+                            style={{
+                                background: selectedProviders.length > 0 ? '#2563eb' : '#94a3b8',
+                                color: '#ffffff',
+                                width: '34px',
+                                height: '34px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 700,
+                                fontSize: '14px',
+                                boxShadow: selectedProviders.length > 0 ? '0 4px 10px rgba(37, 99, 235, 0.3)' : 'none',
+                            }}
+                        >
+                            {selectedProviders.length}
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                                {selectedProviders.length > 0
+                                    ? `Выбрано: ${selectedProviders.length} ${
+                                          selectedProviders.length === 1
+                                              ? 'мастер'
+                                              : selectedProviders.length < 5
+                                              ? 'мастера'
+                                              : 'мастеров'
+                                      }`
+                                    : 'Мастера не выбраны'}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#64748b' }}>
+                                {selectedProviders.length > 0
+                                    ? 'Нажмите «Отправить заявку»'
+                                    : 'Нажимайте на карточки для выбора'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {selectedProviders.length > 0 ? (
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={handleDeselectAll}
+                            >
+                                Сбросить
+                            </Button>
+                        ) : (
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={handleSelectAllInRadius}
+                            >
+                                Выбрать всех
+                            </Button>
+                        )}
+                        <Button
+                            size="small"
+                            variant="contained"
+                            disabled={selectedProviders.length === 0}
+                            onClick={() => setIsCreateOrderOpen(true)}
+                        >
+                            Отправить ({selectedProviders.length})
+                        </Button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTenderMode(false);
+                                setSelectedProviders([]);
+                            }}
+                            style={{
+                                border: 'none',
+                                background: '#f1f5f9',
+                                borderRadius: '50%',
+                                width: '32px',
+                                height: '32px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#64748b',
+                                fontSize: '16px',
+                                fontWeight: 700,
+                            }}
+                            title="Выйти из режима мульти-рассылки"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            )}
             <GeolocationPrompt />
 
             {isCreateOrderOpen && selectedProviders.length > 0 && (
