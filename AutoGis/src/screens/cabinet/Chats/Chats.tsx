@@ -52,6 +52,8 @@ export function Chats() {
             ? "professional"
             : searchParams.get("tab") === "archive"
               ? "archive"
+                            : searchParams.get("tab") === "support"
+                                ? "support"
               : "ordinary";
 
     const [message, setMessage] = useState("");
@@ -470,7 +472,12 @@ export function Chats() {
     const isListVisible = !isChatVisible;
 
     const folderCounts = useMemo<Record<ChatTab, number>>(() => {
-        const counts: Record<ChatTab, number> = { ordinary: 0, professional: 0, archive: 0 };
+        const counts: Record<ChatTab, number> = {
+            ordinary: 0,
+            professional: 0,
+            archive: 0,
+            support: 0,
+        };
 
         for (const order of customerOrders ?? []) {
             if (archiveOrderIds.includes(order.id)) {
@@ -531,23 +538,31 @@ export function Chats() {
                 }}
             >
                 {isListVisible && (
-                    <ChatList
-                        hasProfessionalChatAccess={hasProfessionalChatAccess}
-                        tab={tabParam}
-                        onChangeTab={(value) => {
-                            setSearchParams({ tab: value }, { replace: true });
-                        }}
-                        onBack={() => goBackOrNavigate(navigate, "/cabinet")}
-                        orders={activeOrders}
-                        isLoading={isCustomerOrdersLoading || isProviderOrdersLoading}
-                        profileId={profile.id}
-                        getMeta={getOrderMeta}
-                        onOpenChat={(orderId) => {
-                            void openChat(orderId);
-                        }}
-                        formatRelativeTime={formatRelativeTime}
-                        folderCounts={folderCounts}
-                    />
+                    tabParam === "support" ? (
+                        profile.role === "admin" || profile.role === "moderator" ? (
+                            <AdminSupportList />
+                        ) : (
+                            <SupportChat />
+                        )
+                    ) : (
+                        <ChatList
+                            hasProfessionalChatAccess={hasProfessionalChatAccess}
+                            tab={tabParam}
+                            onChangeTab={(value) => {
+                                setSearchParams({ tab: value }, { replace: true });
+                            }}
+                            onBack={() => goBackOrNavigate(navigate, "/cabinet")}
+                            orders={activeOrders}
+                            isLoading={isCustomerOrdersLoading || isProviderOrdersLoading}
+                            profileId={profile.id}
+                            getMeta={getOrderMeta}
+                            onOpenChat={(orderId) => {
+                                void openChat(orderId);
+                            }}
+                            formatRelativeTime={formatRelativeTime}
+                            folderCounts={folderCounts}
+                        />
+                    )
                 )}
 
                 {isChatVisible && selectedCompanion && selectedOrderId && (

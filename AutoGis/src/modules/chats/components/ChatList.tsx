@@ -10,7 +10,7 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import { ChatMessage, ChatOrder } from "@modules/chats/api";
 import { ChatListItem } from "./ChatListItem";
 
-type ChatTab = "ordinary" | "professional" | "archive";
+type ChatTab = "ordinary" | "professional" | "archive" | "support";
 
 type ChatListMeta = {
     lastMessage?: ChatMessage;
@@ -35,6 +35,7 @@ const PILL_TABS: { value: ChatTab; label: string }[] = [
     { value: "ordinary", label: "Обычный" },
     { value: "professional", label: "Проф." },
     { value: "archive", label: "Архив" },
+    { value: "support", label: "Поддержка" },
 ];
 
 const tabsForUser = (hasProfessionalChatAccess: boolean) =>
