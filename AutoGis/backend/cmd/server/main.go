@@ -131,7 +131,7 @@ func main() {
 	router.Use(middleware.CORSMiddleware(cfg.FrontendURL))
 
 	// Setup routes
-	setupRoutes(router, authHandler, userHandler, orderHandler, searchHandler, reviewHandler, masterHandler, chatHandler, chatWSHandler, businessApplicationHandler, professionalApplicationHandler, mediaHandler, activityHandler, jwtService, professionalApplicationRepo, db)
+	setupRoutes(router, authHandler, userHandler, orderHandler, searchHandler, reviewHandler, masterHandler, chatHandler, chatWSHandler, businessApplicationHandler, professionalApplicationHandler, mediaHandler, activityHandler, notificationHandler, jwtService, professionalApplicationRepo, db)
 
 	// Build the HTTP server explicitly (instead of router.Run) so we can hook
 	// into Shutdown() for graceful drain.
@@ -772,6 +772,7 @@ func setupRoutes(
 	professionalApplicationHandler *handler.ProfessionalApplicationHandler,
 	mediaHandler *handler.MediaHandler,
 	activityHandler *handler.ActivityHandler,
+	notificationHandler *handler.NotificationHandler,
 	jwtService *jwt.JWTService,
 	professionalApplicationRepo repository.ProfessionalApplicationRepository,
 	db *gorm.DB,
@@ -855,6 +856,13 @@ func setupRoutes(
 			userGroup.PUT("/:id/role", userHandler.UpdateUserRole)
 			userGroup.GET("", userHandler.GetAllUsers)
 		}
+
+		
+	// Notification routes
+	apiGroup.GET("/notifications", notificationHandler.GetNotifications)
+	apiGroup.POST("/notifications", notificationHandler.CreateNotification)
+	apiGroup.DELETE("/notifications/:id", notificationHandler.DeleteNotification)
+	apiGroup.DELETE("/notifications", notificationHandler.ClearAllNotifications)
 
 		apiGroup.GET("/activity-types", searchHandler.GetActivityTypes)
 		apiGroup.GET("/user-activity-types/my", userHandler.GetCurrentUserActivityTypes)
