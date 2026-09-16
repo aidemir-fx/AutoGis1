@@ -381,42 +381,52 @@ async function startServer() {
         res.json({ success: true });
     });
 
-    // Auth
-    const demoUser = {
-        id: "demo-user-1",
-        phone: "+7 (903) 123-45-67",
-        name: "Иван Петров",
-        role: "customer",
-        avatar: null,
-        capabilities: {
-            professionalCabinet: true,
-            calendar: true,
-            applications: true,
-        },
-    };
+    // Auth & Users
+    let currentUser: any = null;
 
     app.post("/api/auth/register", (req: Request, res: Response) => {
         const { phone, name, role } = req.body;
-        const user = {
-            ...demoUser,
-            phone: phone || demoUser.phone,
-            name: name || demoUser.name,
-            role: role || demoUser.role,
+        currentUser = {
+            id: `user-${Date.now()}`,
+            phone: phone || "",
+            name: name || "",
+            role: role || "customer",
+            avatar: null,
+            capabilities: {
+                professionalCabinet: role !== "customer",
+                calendar: role !== "customer",
+                applications: role !== "customer",
+            },
         };
         res.json({
             accessToken: "mock-access-token-" + Date.now(),
             refreshToken: "mock-refresh-token-" + Date.now(),
-            user,
+            user: currentUser,
         });
     });
 
     app.post("/api/auth/login", (req: Request, res: Response) => {
         const { phone } = req.body;
-        const user = { ...demoUser, phone: phone || demoUser.phone };
+        if (!currentUser) {
+            currentUser = {
+                id: `user-${Date.now()}`,
+                phone: phone || "",
+                name: "",
+                role: "customer",
+                avatar: null,
+                capabilities: {
+                    professionalCabinet: false,
+                    calendar: false,
+                    applications: false,
+                },
+            };
+        } else if (phone) {
+            currentUser.phone = phone;
+        }
         res.json({
             accessToken: "mock-access-token-" + Date.now(),
             refreshToken: "mock-refresh-token-" + Date.now(),
-            user,
+            user: currentUser,
         });
     });
 
@@ -424,12 +434,43 @@ async function startServer() {
         res.json({
             accessToken: "mock-access-token-refreshed-" + Date.now(),
             refreshToken: "mock-refresh-token-refreshed-" + Date.now(),
-            user: demoUser,
+            user: currentUser,
         });
     });
 
     app.get("/api/users/me", (req: Request, res: Response) => {
-        res.json(demoUser);
+        if (!currentUser) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+        res.json(currentUser);
+    });
+
+    app.get("/api/users/profile/me", (req: Request, res: Response) => {
+        if (!currentUser) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+        res.json(currentUser);
+    });
+
+    app.put("/api/users/profile", (req: Request, res: Response) => {
+        if (!currentUser) {
+            currentUser = {
+                id: `user-${Date.now()}`,
+                phone: req.body.phone || "",
+                name: req.body.name || "",
+                role: "customer",
+                avatar: null,
+                capabilities: {
+                    professionalCabinet: false,
+                    calendar: false,
+                    applications: false,
+                },
+            };
+        } else {
+            if (req.body.name !== undefined) currentUser.name = req.body.name;
+            if (req.body.phone !== undefined) currentUser.phone = req.body.phone;
+        }
+        res.json(currentUser);
     });
 
     // Orders
@@ -438,22 +479,30 @@ async function startServer() {
         const provider = SAMPLE_PROVIDERS.find((p) => p.id === providerId) || SAMPLE_PROVIDERS[0];
         const activity = ACTIVITY_TYPES.find((a) => a.id === activityTypeId) || ACTIVITY_TYPES[1];
 
+        const customerId = currentUser?.id || `user-anon-${Date.now()}`;
+        const customerName = name || currentUser?.name || "";
+        const customerPhone = phone || currentUser?.phone || "";
+
         const newOrder: Order = {
             id: `order-${Date.now()}`,
             customer: {
-                id: demoUser.id,
-                name: name || demoUser.name,
-                phone: phone || demoUser.phone,
+                id: customerId,
+                name: customerName,
+                phone: customerPhone,
             },
-            provider: {
+            provider: provider ? {
                 id: provider.id,
                 name: provider.fullName,
                 phone: provider.phone,
+            } : {
+                id: "unknown",
+                name: "Мастер",
+                phone: "",
             },
             activityType: activity,
             status: "pending",
-            name: name || demoUser.name,
-            phone: phone || demoUser.phone,
+            name: customerName,
+            phone: customerPhone,
             carBrand: carBrand || "Автомобиль",
             description: description || "",
             timePreference: timePreference || "not_urgent",
@@ -511,9 +560,10 @@ async function startServer() {
             return res.status(404).json({ error: "Order not found" });
         }
         const messages = sampleMessages[req.params.id] || [];
+        const currentUserId = currentUser?.id;
         // Mark messages as read when chat is opened
         messages.forEach((m: any) => {
-            if (m.sender?.id !== demoUser.id) {
+            if (m.sender?.id !== currentUserId) {
                 m.status = "read";
             }
         });
@@ -522,8 +572,9 @@ async function startServer() {
 
     app.post("/api/chat-messages/order/:id/read", (req: Request, res: Response) => {
         const messages = sampleMessages[req.params.id] || [];
+        const currentUserId = currentUser?.id;
         messages.forEach((m: any) => {
-            if (m.sender?.id !== demoUser.id) {
+            if (m.sender?.id !== currentUserId) {
                 m.status = "read";
             }
         });
@@ -537,7 +588,7 @@ async function startServer() {
             message: message || "",
             createdAt: new Date().toISOString(),
             status: "delivered",
-            sender: demoUser,
+            sender: currentUser || { id: "user-anon", name: "Пользователь" },
         };
         if (!sampleMessages[req.params.id]) {
             sampleMessages[req.params.id] = [];
@@ -618,9 +669,10 @@ async function startServer() {
 
     app.get("/api/chat-messages/unread-count", (req: Request, res: Response) => {
         const counts: { orderId: string; count: number }[] = [];
+        const currentUserId = currentUser?.id;
         for (const [orderId, msgs] of Object.entries(sampleMessages)) {
             const unread = (msgs as any[]).filter(
-                (m) => m.status !== "read" && m.sender?.id !== demoUser.id
+                (m) => m.status !== "read" && m.sender?.id !== currentUserId
             ).length;
             if (unread > 0) {
                 counts.push({ orderId, count: unread });
