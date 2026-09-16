@@ -966,7 +966,8 @@ export const MainpPageScreen = () => {
                     </>
                 )}
             </HomeShell>
-                        {tenderMode && (
+
+            {tenderMode && selectedProviders.length > 0 && (
                 <div
                     style={{
                         position: 'fixed',
@@ -1087,6 +1088,7 @@ export const MainpPageScreen = () => {
                     onClose={() => setIsCreateOrderOpen(false)}
                     onSuccess={() => {
                         setSelectedProviders([]);
+                        setTenderMode(false);
                     }}
                     providers={selectedProviders}
                 />
