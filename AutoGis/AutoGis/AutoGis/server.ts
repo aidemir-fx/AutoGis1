@@ -38,142 +38,8 @@ interface ProviderData {
     hotline?: string;
 }
 
-const SAMPLE_PROVIDERS: ProviderData[] = [
-    {
-        id: "master-1",
-        userId: "user-1",
-        fullName: "Алексей Смирнов",
-        businessName: "Автомастер Алексей Смирнов",
-        providerType: "master",
-        activityTypeId: "2",
-        status: "available",
-        address: "Москва, Автозаводская ул., д. 16",
-        coordinates: {
-            type: "Point",
-            coordinates: [37.6624, 55.7068],
-        },
-        phone: "+7 (999) 111-22-33",
-        workingPhone: "+7 (999) 111-22-33",
-        description: "Опыт работы более 12 лет. Специализируюсь на диагностике и ремонте автоэлектрики, ходовой части, двигателей.",
-        workFrom: "09:00",
-        workTo: "20:00",
-        workingDays: [true, true, true, true, true, true, false],
-        professions: ["Автоэлектрик", "Диагност", "Моторист"],
-        autoMarks: ["Toyota", "Kia", "Hyundai", "Volkswagen", "LADA", "BMW"],
-        services: ["Компьютерная диагностика", "Ремонт подвески", "Замена ГРМ", "Замена тормозных колодок"],
-        onlineBookingEnabled: true,
-        rating: 4.9,
-        reviewsCount: 34,
-    },
-    {
-        id: "service-1",
-        userId: "user-2",
-        fullName: "Автотехцентр «Мотор Сити»",
-        businessName: "Автотехцентр «Мотор Сити»",
-        providerType: "auto_service",
-        activityTypeId: "1",
-        status: "available",
-        address: "Москва, Ленинградский проспект, 36с1",
-        coordinates: {
-            type: "Point",
-            coordinates: [37.5532, 55.7925],
-        },
-        phone: "+7 (495) 789-01-23",
-        workingPhone: "+7 (495) 789-01-23",
-        description: "Полный комплекс услуг по обслуживанию и ремонту легковых авто и коммерческого транспорта. Сертифицированные мастера.",
-        workFrom: "08:00",
-        workTo: "21:00",
-        workingDays: [true, true, true, true, true, true, true],
-        professions: ["Автоэлектрик", "Кузовщик", "Маляр", "Моторист", "Ходовик"],
-        autoMarks: ["Toyota", "BMW", "Mercedes-Benz", "Audi", "Kia", "Hyundai", "Renault"],
-        services: ["Комплексное ТО", "Кузовной ремонт", "Покраска элементов", "Сход-развал 3D", "Ремонт ДВС"],
-        onlineBookingEnabled: true,
-        brandSupport: ["Toyota", "BMW", "Mercedes-Benz", "Audi"],
-        hasParking: true,
-        liftCount: 6,
-        warranty: true,
-        rating: 4.8,
-        reviewsCount: 89,
-    },
-    {
-        id: "wash-1",
-        userId: "user-3",
-        fullName: "Премиум Детейлинг & Мойка «АкваЛюкс»",
-        businessName: "Премиум Детейлинг & Мойка «АкваЛюкс»",
-        providerType: "auto_wash",
-        activityTypeId: "3",
-        status: "available",
-        address: "Москва, Кутузовский проспект, 48",
-        coordinates: {
-            type: "Point",
-            coordinates: [37.5028, 55.7335],
-        },
-        phone: "+7 (495) 555-44-33",
-        workingPhone: "+7 (495) 555-44-33",
-        description: "3-х фазная детейлинг-мойка кузова, химчистка салона паром, полировка и нанесение защитных керамических покрытий.",
-        workFrom: "00:00",
-        workTo: "24:00",
-        workingDays: [true, true, true, true, true, true, true],
-        professions: ["Детейлер", "Мойщик"],
-        autoMarks: ["Все марки"],
-        services: ["Бесконтактная мойка", "Химчистка салона", "Керамика и жидкое стекло", "Полировка фар", "Чернение резины"],
-        onlineBookingEnabled: true,
-        rating: 4.9,
-        reviewsCount: 52,
-    },
-    {
-        id: "shop-1",
-        userId: "user-4",
-        fullName: "Автозапчасти «АвтоДеталь»",
-        businessName: "Автозапчасти «АвтоДеталь»",
-        providerType: "auto_shop",
-        activityTypeId: "4",
-        status: "available",
-        address: "Москва, Профсоюзная ул., 65",
-        coordinates: {
-            type: "Point",
-            coordinates: [37.5385, 55.6568],
-        },
-        phone: "+7 (495) 321-65-43",
-        workingPhone: "+7 (495) 321-65-43",
-        description: "Оригинальные запчасти и качественные аналоги в наличии и под заказ за 1 день. Масла, фильтры, колодки, автохимия.",
-        workFrom: "09:00",
-        workTo: "21:00",
-        workingDays: [true, true, true, true, true, true, true],
-        professions: ["Консультант по подбору запчастей"],
-        autoMarks: ["LADA", "Kia", "Hyundai", "Toyota", "Volkswagen", "Renault"],
-        services: ["Подбор по VIN коду", "Продажа масел и жидкостей", "Заказ редких запчастей", "Доставка курьером"],
-        onlineBookingEnabled: false,
-        rating: 4.7,
-        reviewsCount: 41,
-    },
-    {
-        id: "master-2",
-        userId: "user-5",
-        fullName: "Дмитрий Ковалев (Шиномонтаж и балансировка)",
-        businessName: "Выездной шиномонтаж",
-        providerType: "master",
-        activityTypeId: "2",
-        status: "available",
-        address: "Москва, Варшавское шоссе, 125",
-        coordinates: {
-            type: "Point",
-            coordinates: [37.6183, 55.6321],
-        },
-        phone: "+7 (926) 777-88-99",
-        workingPhone: "+7 (926) 777-88-99",
-        description: "Быстрый выездной и стационарный шиномонтаж. Правка литых дисков, устранение проколов и боковых порезов, хранение резины.",
-        workFrom: "08:00",
-        workTo: "23:00",
-        workingDays: [true, true, true, true, true, true, true],
-        professions: ["Шиномонтаж"],
-        autoMarks: ["Все марки"],
-        services: ["Сезонная переобувка", "Ремонт прокола жгутом/грибком", "Правка дисков", "Балансировка колес"],
-        onlineBookingEnabled: true,
-        rating: 4.8,
-        reviewsCount: 19,
-    },
-];
+const SAMPLE_PROVIDERS: ProviderData[] = [];
+
 
 const ACTIVITY_TYPES = [
     { id: "1", name: "auto_service", displayName: "Автосервис" },
@@ -218,91 +84,10 @@ interface Order {
     updatedAt: string;
 }
 
-const sampleOrders: Order[] = [
-    {
-        id: "order-101",
-        customer: {
-            id: "demo-user-1",
-            name: "Иван Петров",
-            phone: "+7 (903) 123-45-67",
-        },
-        provider: {
-            id: "master-1",
-            name: "Алексей Смирнов",
-            phone: "+7 (999) 111-22-33",
-            address: "ул. Ленина, д. 10, гараж 45",
-        },
-        activityType: {
-            id: "2",
-            name: "master",
-            displayName: "Частный мастер",
-        },
-        status: "pending",
-        name: "Иван Петров",
-        phone: "+7 (903) 123-45-67",
-        carBrand: "Toyota Camry 2018",
-        description: "Стучит при повороте руля на малой скорости, требуется диагностика подвески.",
-        timePreference: "urgent",
-        createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-        updatedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    },
-    {
-        id: "order-102",
-        customer: {
-            id: "demo-user-1",
-            name: "Иван Петров",
-            phone: "+7 (903) 123-45-67",
-        },
-        provider: {
-            id: "service-1",
-            name: "Автотехцентр «Мотор Сити»",
-            phone: "+7 (495) 789-01-23",
-            address: "ш. Энтузиастов, 56",
-        },
-        activityType: {
-            id: "1",
-            name: "auto_service",
-            displayName: "Автосервис",
-        },
-        status: "scheduled",
-        name: "Иван Петров",
-        phone: "+7 (903) 123-45-67",
-        carBrand: "Kia Rio 2020",
-        description: "Плановое ТО: замена моторного масла, масляного, салонного и воздушного фильтров.",
-        timePreference: "not_urgent",
-        confirmedDateTime: new Date(Date.now() + 86400000).toISOString(),
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        updatedAt: new Date(Date.now() - 40000000).toISOString(),
-    },
-];
+const sampleOrders: Order[] = [];
 
-const sampleMessages: Record<string, any[]> = {
-    "order-101": [
-        {
-            id: "msg-1",
-            message: "Здравствуйте! Подскажите, когда можно подъехать на диагностику?",
-            createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-            status: "read",
-            sender: {
-                id: "demo-user-1",
-                name: "Иван Петров",
-                phone: "+7 (903) 123-45-67",
-            },
-        },
-        {
-            id: "msg-2",
-            message: "Добрый день! Могу принять сегодня после 16:00 или завтра с утра. Какая именно модель?",
-            createdAt: new Date(Date.now() - 3600000).toISOString(),
-            status: "read",
-            sender: {
-                id: "master-1",
-            name: "Алексей Смирнов",
-            phone: "+7 (999) 111-22-33",
-            address: "ул. Ленина, д. 10, гараж 45",
-            },
-        },
-    ],
-};
+const sampleMessages: Record<string, any[]> = {};
+
 
 async function startServer() {
     const app = express();
@@ -445,22 +230,51 @@ async function startServer() {
     });
 
     app.get("/api/masters/profile/me", (req: Request, res: Response) => {
-        const master = SAMPLE_PROVIDERS[0];
+        const master = SAMPLE_PROVIDERS.find((p) => p.providerType === "master");
+        if (!master) {
+            return res.status(404).json({ error: "Profile not found" });
+        }
         res.json(master);
     });
 
     app.put("/api/masters/profile/me", (req: Request, res: Response) => {
-        const updated = { ...SAMPLE_PROVIDERS[0], ...req.body };
-        SAMPLE_PROVIDERS[0] = updated;
-        res.json(updated);
+        let master = SAMPLE_PROVIDERS.find((p) => p.providerType === "master");
+        if (!master) {
+            master = {
+                id: `master-${Date.now()}`,
+                userId: "user-me",
+                fullName: req.body.fullName || "Мастер",
+                providerType: "master",
+                activityTypeId: "2",
+                status: "available",
+                address: "",
+                coordinates: { type: "Point", coordinates: [37.6, 55.7] },
+                phone: req.body.phone || "",
+                workingPhone: req.body.workingPhone || "",
+                description: "",
+                workFrom: "09:00",
+                workTo: "20:00",
+                workingDays: [true, true, true, true, true, true, false],
+                professions: [],
+                autoMarks: [],
+                services: [],
+                onlineBookingEnabled: true,
+                ...req.body,
+            };
+            SAMPLE_PROVIDERS.push(master);
+        } else {
+            Object.assign(master, req.body);
+        }
+        res.json(master);
     });
 
     app.patch("/api/masters/profile/me/status", (req: Request, res: Response) => {
         const { status } = req.body;
-        if (status) {
-            SAMPLE_PROVIDERS[0].status = status;
+        const master = SAMPLE_PROVIDERS.find((p) => p.providerType === "master");
+        if (master && status) {
+            master.status = status;
         }
-        res.json({ success: true, status: SAMPLE_PROVIDERS[0].status });
+        res.json({ success: true, status: master?.status || "available" });
     });
 
     app.get("/api/masters/:id", (req: Request, res: Response) => {
@@ -473,7 +287,10 @@ async function startServer() {
 
     // Auto Wash profile
     app.get("/api/auto_washes/profile/me", (req: Request, res: Response) => {
-        const wash = SAMPLE_PROVIDERS.find((p) => p.providerType === "auto_wash") || SAMPLE_PROVIDERS[2];
+        const wash = SAMPLE_PROVIDERS.find((p) => p.providerType === "auto_wash");
+        if (!wash) {
+            return res.status(404).json({ error: "Profile not found" });
+        }
         res.json({
             id: wash.id,
             phone: wash.phone,
@@ -484,7 +301,11 @@ async function startServer() {
     });
 
     app.put("/api/auto_washes/profile/me", (req: Request, res: Response) => {
-        res.json(SAMPLE_PROVIDERS[2]);
+        let wash = SAMPLE_PROVIDERS.find((p) => p.providerType === "auto_wash");
+        if (wash) {
+            Object.assign(wash, req.body);
+        }
+        res.json(wash || {});
     });
 
     app.put("/api/auto_washes/status", (req: Request, res: Response) => {
@@ -501,7 +322,10 @@ async function startServer() {
 
     // Auto Shop profile
     app.get("/api/auto_shops/profile/me", (req: Request, res: Response) => {
-        const shop = SAMPLE_PROVIDERS.find((p) => p.providerType === "auto_shop") || SAMPLE_PROVIDERS[3];
+        const shop = SAMPLE_PROVIDERS.find((p) => p.providerType === "auto_shop");
+        if (!shop) {
+            return res.status(404).json({ error: "Profile not found" });
+        }
         res.json({
             id: shop.id,
             phone: shop.phone,
@@ -512,7 +336,11 @@ async function startServer() {
     });
 
     app.put("/api/auto_shops/profile/me", (req: Request, res: Response) => {
-        res.json(SAMPLE_PROVIDERS[3]);
+        let shop = SAMPLE_PROVIDERS.find((p) => p.providerType === "auto_shop");
+        if (shop) {
+            Object.assign(shop, req.body);
+        }
+        res.json(shop || {});
     });
 
     app.put("/api/auto_shops/status", (req: Request, res: Response) => {
@@ -528,7 +356,10 @@ async function startServer() {
 
     // Auto Service profile
     app.get("/api/auto_services/profile/me", (req: Request, res: Response) => {
-        const service = SAMPLE_PROVIDERS.find((p) => p.providerType === "auto_service") || SAMPLE_PROVIDERS[1];
+        const service = SAMPLE_PROVIDERS.find((p) => p.providerType === "auto_service");
+        if (!service) {
+            return res.status(404).json({ error: "Profile not found" });
+        }
         res.json({
             id: service.id,
             phone: service.phone,
@@ -539,7 +370,11 @@ async function startServer() {
     });
 
     app.put("/api/auto_services/profile/me", (req: Request, res: Response) => {
-        res.json(SAMPLE_PROVIDERS[1]);
+        let service = SAMPLE_PROVIDERS.find((p) => p.providerType === "auto_service");
+        if (service) {
+            Object.assign(service, req.body);
+        }
+        res.json(service || {});
     });
 
     app.put("/api/auto_services/status", (req: Request, res: Response) => {
@@ -671,7 +506,10 @@ async function startServer() {
 
     // Chat messages
     app.get("/api/chat-messages/order/:id", (req: Request, res: Response) => {
-        const order = sampleOrders.find((o) => o.id === req.params.id) || sampleOrders[0];
+        const order = sampleOrders.find((o) => o.id === req.params.id);
+        if (!order) {
+            return res.status(404).json({ error: "Order not found" });
+        }
         const messages = sampleMessages[req.params.id] || [];
         // Mark messages as read when chat is opened
         messages.forEach((m: any) => {
