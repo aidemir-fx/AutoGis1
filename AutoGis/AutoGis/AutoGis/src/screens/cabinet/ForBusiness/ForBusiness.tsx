@@ -160,7 +160,7 @@ function getDefaultFormValues(): FormValues {
         applicantName: "",
         city: "",
         address: "",
-        phone: "+7",
+        phone: "",
         yandexMapsUrl: "",
         comment: "",
         agreedToTerms: false,
@@ -225,7 +225,7 @@ function buildFormValuesFromApplication(application: BusinessApplication): FormV
         applicantName: application.applicantName ?? "",
         city: application.city ?? "",
         address: application.address ?? "",
-        phone: application.phone ?? "+7",
+        phone: application.phone ?? "",
         yandexMapsUrl: application.yandexMapsUrl ?? "",
         comment: application.comment ?? "",
         agreedToTerms: false,
@@ -897,7 +897,7 @@ function ScenarioFields({
                                     {...field}
                                     $accent={accent}
                                     $invalid={Boolean(fieldState.error)}
-                                    placeholder="Например, Иван Петров"
+                                    placeholder="Введите ваше имя"
                                 />
                                 {fieldState.error && (
                                     <FieldError>{fieldState.error.message}</FieldError>
