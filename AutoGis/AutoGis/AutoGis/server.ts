@@ -673,7 +673,23 @@ async function startServer() {
     app.get("/api/chat-messages/order/:id", (req: Request, res: Response) => {
         const order = sampleOrders.find((o) => o.id === req.params.id) || sampleOrders[0];
         const messages = sampleMessages[req.params.id] || [];
+        // Mark messages as read when chat is opened
+        messages.forEach((m: any) => {
+            if (m.sender?.id !== demoUser.id) {
+                m.status = "read";
+            }
+        });
         res.json({ order, messages });
+    });
+
+    app.post("/api/chat-messages/order/:id/read", (req: Request, res: Response) => {
+        const messages = sampleMessages[req.params.id] || [];
+        messages.forEach((m: any) => {
+            if (m.sender?.id !== demoUser.id) {
+                m.status = "read";
+            }
+        });
+        res.json({ success: true });
     });
 
     app.post("/api/chat-messages/order/:id", (req: Request, res: Response) => {
@@ -763,9 +779,16 @@ async function startServer() {
     });
 
     app.get("/api/chat-messages/unread-count", (req: Request, res: Response) => {
-        res.json([
-            { orderId: "order-101", count: 1 },
-        ]);
+        const counts: { orderId: string; count: number }[] = [];
+        for (const [orderId, msgs] of Object.entries(sampleMessages)) {
+            const unread = (msgs as any[]).filter(
+                (m) => m.status !== "read" && m.sender?.id !== demoUser.id
+            ).length;
+            if (unread > 0) {
+                counts.push({ orderId, count: unread });
+            }
+        }
+        res.json(counts);
     });
 
     // Media

@@ -45,6 +45,13 @@ import {
     PageRoot,
     ProfileButton,
     SearchPanel,
+    TenderBarActions,
+    TenderBarBadge,
+    TenderBarHeader,
+    TenderBarInfo,
+    TenderCloseButtonDesktop,
+    TenderCloseButtonMobile,
+    TenderFloatingBar,
     TopActions,
     TopBar,
 } from "./styles";
@@ -968,66 +975,45 @@ export const MainpPageScreen = () => {
             </HomeShell>
 
             {tenderMode && selectedProviders.length > 0 && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        bottom: '24px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        zIndex: 1150,
-                        width: 'calc(100% - 32px)',
-                        maxWidth: '620px',
-                        background: 'rgba(255, 255, 255, 0.96)',
-                        backdropFilter: 'blur(10px)',
-                        borderRadius: '18px',
-                        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08)',
-                        padding: '12px 18px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '12px',
-                        flexWrap: 'wrap',
-                    }}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div
-                            style={{
-                                background: selectedProviders.length > 0 ? '#2563eb' : '#94a3b8',
-                                color: '#ffffff',
-                                width: '34px',
-                                height: '34px',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontWeight: 700,
-                                fontSize: '14px',
-                                boxShadow: selectedProviders.length > 0 ? '0 4px 10px rgba(37, 99, 235, 0.3)' : 'none',
-                            }}
-                        >
-                            {selectedProviders.length}
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
-                                {selectedProviders.length > 0
-                                    ? `Выбрано: ${selectedProviders.length} ${
-                                          selectedProviders.length === 1
-                                              ? 'мастер'
-                                              : selectedProviders.length < 5
-                                              ? 'мастера'
-                                              : 'мастеров'
-                                      }`
-                                    : 'Мастера не выбраны'}
+                <TenderFloatingBar>
+                    <TenderBarHeader>
+                        <TenderBarInfo>
+                            <TenderBarBadge>
+                                {selectedProviders.length}
+                            </TenderBarBadge>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                                    {selectedProviders.length > 0
+                                        ? `Выбрано: ${selectedProviders.length} ${
+                                              selectedProviders.length === 1
+                                                  ? 'мастер'
+                                                  : selectedProviders.length < 5
+                                                  ? 'мастера'
+                                                  : 'мастеров'
+                                          }`
+                                        : 'Мастера не выбраны'}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#64748b' }}>
+                                    {selectedProviders.length > 0
+                                        ? 'Нажмите «Отправить заявку»'
+                                        : 'Нажимайте на карточки для выбора'}
+                                </div>
                             </div>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>
-                                {selectedProviders.length > 0
-                                    ? 'Нажмите «Отправить заявку»'
-                                    : 'Нажимайте на карточки для выбора'}
-                            </div>
-                        </div>
-                    </div>
+                        </TenderBarInfo>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <TenderCloseButtonMobile
+                            type="button"
+                            onClick={() => {
+                                setTenderMode(false);
+                                setSelectedProviders([]);
+                            }}
+                            title="Выйти из режима мульти-рассылки"
+                        >
+                            ✕
+                        </TenderCloseButtonMobile>
+                    </TenderBarHeader>
+
+                    <TenderBarActions>
                         {selectedProviders.length > 0 ? (
                             <Button
                                 size="small"
@@ -1053,32 +1039,18 @@ export const MainpPageScreen = () => {
                         >
                             Отправить ({selectedProviders.length})
                         </Button>
-                        <button
+                        <TenderCloseButtonDesktop
                             type="button"
                             onClick={() => {
                                 setTenderMode(false);
                                 setSelectedProviders([]);
                             }}
-                            style={{
-                                border: 'none',
-                                background: '#f1f5f9',
-                                borderRadius: '50%',
-                                width: '32px',
-                                height: '32px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#64748b',
-                                fontSize: '16px',
-                                fontWeight: 700,
-                            }}
                             title="Выйти из режима мульти-рассылки"
                         >
                             ✕
-                        </button>
-                    </div>
-                </div>
+                        </TenderCloseButtonDesktop>
+                    </TenderBarActions>
+                </TenderFloatingBar>
             )}
             <GeolocationPrompt />
 

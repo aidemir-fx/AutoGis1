@@ -37,6 +37,19 @@ type ChatTab = "ordinary" | "professional" | "archive" | "support";
 type ChatView = "list" | "chat";
 
 const ARCHIVE_ORDER_STORAGE_KEY = "autogis.chat.archiveOrderIds.v1";
+const READ_ORDER_STORAGE_KEY = "autogis.chat.readOrderIds.v1";
+
+function getStoredReadOrderIds(): string[] {
+    if (typeof window === "undefined") return [];
+    try {
+        const raw = window.localStorage.getItem(READ_ORDER_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
+    } catch {
+        return [];
+    }
+}
 
 export function Chats() {
     const navigate = useNavigate();
@@ -70,6 +83,43 @@ export function Chats() {
             return [];
         }
     });
+
+    const [readOrderIds, setReadOrderIds] = useState<string[]>(getStoredReadOrderIds);
+
+    const markOrderAsReadLocally = useCallback(
+        (orderId: string) => {
+            setReadOrderIds((prev) => {
+                if (prev.includes(orderId)) return prev;
+                const updated = [...prev, orderId];
+                if (typeof window !== "undefined") {
+                    try {
+                        window.localStorage.setItem(READ_ORDER_STORAGE_KEY, JSON.stringify(updated));
+                    } catch {
+                        // ignore quota error
+                    }
+                }
+                return updated;
+            });
+
+            queryClient.setQueryData<UnreadCount[]>(["unreadCounts"], (old) =>
+                (old ?? []).filter((item) => item.orderId !== orderId)
+            );
+
+            queryClient.setQueryData<OrderChatResponse>(["orderChat", orderId], (current) => {
+                if (!current) return current;
+                let changed = false;
+                const updated = current.messages.map((item) => {
+                    if (item.sender.id !== profile?.id && item.status !== "read") {
+                        changed = true;
+                        return { ...item, status: "read" as const };
+                    }
+                    return item;
+                });
+                return changed ? { ...current, messages: updated } : current;
+            });
+        },
+        [profile?.id, queryClient]
+    );
 
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -114,13 +164,37 @@ export function Chats() {
         [providerOrders]
     );
 
+    const getEffectiveUnread = useCallback(
+        (orderId: string): number => {
+            if (selectedOrderId === orderId) return 0;
+
+            const cachedChat = queryClient.getQueryData<OrderChatResponse>(["orderChat", orderId]);
+            if (cachedChat) {
+                const unreadInCache = cachedChat.messages.filter(
+                    (item) => item.sender.id !== profile?.id && item.status !== "read"
+                ).length;
+                if (unreadInCache === 0 || readOrderIds.includes(orderId)) {
+                    return 0;
+                }
+                return unreadInCache;
+            }
+
+            if (readOrderIds.includes(orderId)) {
+                return 0;
+            }
+
+            return serverUnreadMap.get(orderId) ?? 0;
+        },
+        [profile?.id, queryClient, readOrderIds, selectedOrderId, serverUnreadMap]
+    );
+
     const unreadProviderCount = useMemo(() => {
         let total = 0;
-        serverUnreadMap.forEach((count, orderId) => {
-            if (providerOrderIds.has(orderId)) total += count;
+        providerOrderIds.forEach((orderId) => {
+            total += getEffectiveUnread(orderId);
         });
         return total;
-    }, [providerOrderIds, serverUnreadMap]);
+    }, [getEffectiveUnread, providerOrderIds]);
 
     const archiveOrders = useMemo(
         () =>
@@ -336,8 +410,25 @@ export function Chats() {
                 // чтобы badge в BottomNav обновился без ожидания polling'а
                 queryClient.invalidateQueries({ queryKey: ["unreadCounts"] });
             }
+
+            if (payload.orderId === selectedOrderId) {
+                markOrderAsReadLocally(payload.orderId);
+            } else {
+                setReadOrderIds((prev) => {
+                    if (!prev.includes(payload.orderId)) return prev;
+                    const updated = prev.filter((id) => id !== payload.orderId);
+                    if (typeof window !== "undefined") {
+                        try {
+                            window.localStorage.setItem(READ_ORDER_STORAGE_KEY, JSON.stringify(updated));
+                        } catch {
+                            // ignore
+                        }
+                    }
+                    return updated;
+                });
+            }
         },
-        [profile?.id, queryClient]
+        [markOrderAsReadLocally, profile?.id, queryClient, selectedOrderId]
     );
 
     const handleMessageStatusUpdated = useCallback(
@@ -401,15 +492,33 @@ export function Chats() {
         },
     });
 
+    useEffect(() => {
+        if (selectedOrderId) {
+            markOrderAsReadLocally(selectedOrderId);
+        }
+    }, [selectedOrderId, markOrderAsReadLocally]);
+
+    useEffect(() => {
+        if (!selectedOrderId || !orderChat) return;
+        const hasUnread = orderChat.messages.some(
+            (item) => item.sender.id !== profile?.id && item.status !== "read"
+        );
+        if (hasUnread) {
+            markOrderAsReadLocally(selectedOrderId);
+        }
+    }, [orderChat, profile?.id, selectedOrderId, markOrderAsReadLocally]);
+
     const openChat = async (orderId: string) => {
         setSelectedOrderId(orderId);
         setView("chat");
+        markOrderAsReadLocally(orderId);
 
         await queryClient.prefetchQuery({
             queryKey: ["orderChat", orderId],
             queryFn: () => getOrderChat(orderId),
         });
 
+        markOrderAsReadLocally(orderId);
         // После загрузки чата сервер пометил сообщения как read —
         // инвалидируем серверный счётчик, чтобы badge сразу упал
         queryClient.invalidateQueries({ queryKey: ["unreadCounts"] });
@@ -476,38 +585,32 @@ export function Chats() {
             support: 0,
         };
 
-        for (const order of customerOrders ?? []) {
-            if (archiveOrderIds.includes(order.id)) {
-                counts.archive += serverUnreadMap.get(order.id) ?? 0;
-            } else {
-                counts.ordinary += serverUnreadMap.get(order.id) ?? 0;
-            }
-        }
+        const seenOrderIds = new Set<string>();
+        const allOrders = [...(customerOrders ?? []), ...(providerOrders ?? [])];
 
-        for (const order of providerOrders ?? []) {
+        for (const order of allOrders) {
+            if (seenOrderIds.has(order.id)) continue;
+            seenOrderIds.add(order.id);
+
+            const unread = getEffectiveUnread(order.id);
+            if (unread <= 0) continue;
+
             if (archiveOrderIds.includes(order.id)) {
-                counts.archive += serverUnreadMap.get(order.id) ?? 0;
+                counts.archive += unread;
+            } else if (providerOrderIds.has(order.id)) {
+                counts.professional += unread;
             } else {
-                counts.professional += serverUnreadMap.get(order.id) ?? 0;
+                counts.ordinary += unread;
             }
         }
 
         return counts;
-    }, [archiveOrderIds, customerOrders, providerOrders, serverUnreadMap]);
+    }, [archiveOrderIds, customerOrders, getEffectiveUnread, providerOrderIds, providerOrders]);
 
     const getOrderMeta = (orderId: string) => {
         const cachedChat = queryClient.getQueryData<OrderChatResponse>(["orderChat", orderId]);
         const lastMessage = cachedChat?.messages[cachedChat.messages.length - 1];
-
-        let unreadCount: number;
-        if (cachedChat) {
-            unreadCount = cachedChat.messages.filter(
-                (item) => item.sender.id !== profile.id && item.status !== "read"
-            ).length;
-        } else {
-            unreadCount = serverUnreadMap.get(orderId) ?? 0;
-        }
-
+        const unreadCount = getEffectiveUnread(orderId);
         return { lastMessage, unreadCount };
     };
 

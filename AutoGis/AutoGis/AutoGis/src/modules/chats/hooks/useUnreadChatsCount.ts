@@ -66,6 +66,29 @@ export function useUnreadChatsCount(enabled = true): number {
             countByOrder.set(orderId, unread);
         }
 
+        // Учитываем локально прочитанные пользователем чаты
+        try {
+            const raw = typeof window !== "undefined" ? window.localStorage.getItem("autogis.chat.readOrderIds.v1") : null;
+            if (raw) {
+                const readIds: string[] = JSON.parse(raw);
+                if (Array.isArray(readIds)) {
+                    for (const orderId of readIds) {
+                        const cached = queryClient.getQueryData<OrderChatResponse>(["orderChat", orderId]);
+                        if (cached) {
+                            const unread = cached.messages.filter(
+                                (m) => m.sender.id !== profile.id && m.status !== "read"
+                            ).length;
+                            countByOrder.set(orderId, unread);
+                        } else {
+                            countByOrder.set(orderId, 0);
+                        }
+                    }
+                }
+            }
+        } catch {
+            // ignore JSON error
+        }
+
         let total = 0;
         countByOrder.forEach((c) => (total += c));
         return total;

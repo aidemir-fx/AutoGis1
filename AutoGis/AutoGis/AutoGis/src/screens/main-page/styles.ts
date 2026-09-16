@@ -416,3 +416,129 @@ export const TypeAccent = styled.span<{ $type: ActivityType }>`
                 ? "#475569"
                 : "#111827"};
 `;
+
+export const TenderFloatingBar = styled.div`
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1350;
+    width: calc(100% - 32px);
+    max-width: 620px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(14px);
+    border-radius: 18px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    @media (max-width: 1024px) {
+        bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 12px);
+        width: calc(100% - 24px);
+        padding: 12px 14px;
+    }
+
+    @media (max-width: 540px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px 14px;
+    }
+`;
+
+export const TenderBarHeader = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+`;
+
+export const TenderBarInfo = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+`;
+
+export const TenderBarBadge = styled.div`
+    background: #2563eb;
+    color: #ffffff;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    flex-shrink: 0;
+`;
+
+export const TenderBarActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    @media (max-width: 540px) {
+        width: 100%;
+        & > button {
+            flex: 1;
+        }
+    }
+`;
+
+export const TenderCloseButtonDesktop = styled.button`
+    border: none;
+    background: #f1f5f9;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    @media (max-width: 540px) {
+        display: none;
+    }
+`;
+
+export const TenderCloseButtonMobile = styled.button`
+    border: none;
+    background: #f1f5f9;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    @media (max-width: 540px) {
+        display: flex;
+    }
+`;
+
