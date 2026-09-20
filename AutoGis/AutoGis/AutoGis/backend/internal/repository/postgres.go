@@ -362,6 +362,7 @@ func (r *OrderRepositoryImpl) GetOrderInvitations(ctx context.Context, providerI
 	err := r.db.WithContext(ctx).
 		Preload("Order").
 		Preload("Order.Customer").
+		Preload("Order.Provider").
 		Preload("Order.ActivityType").
 		Where("provider_id = ? AND status = ?", providerID, domain.InvitationStatusPending).
 		Find(&invitations).Error
