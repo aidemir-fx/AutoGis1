@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import AssignmentTurnedInRoundedIcon from "@mui/icons-material/AssignmentTurnedInRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
-import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
@@ -18,24 +17,10 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { hasCapability } from "@common/lib/userAccess";
 import { useUserProfile } from "@common/hooks";
-import { http } from "@common/lib/http";
 import { DashboardLayout } from "@modules/layout/features/UserCabinetLayout/DashboardLayout";
 import { ChatOrder, getProviderOrders } from "@modules/chats/api";
 import { ORDER_TIME_PREFERENCE_LABELS } from "@modules/orders/api";
 import { palette as applicationsPalette } from "../Applications/components/styles";
-
-interface ActivityType {
-    id: string;
-    name: string;
-    displayName: string;
-    description?: string;
-    isActive: boolean;
-}
-
-interface UserActivityTypeItem {
-    id: string;
-    activityType: ActivityType;
-}
 
 type Tone = {
     accent: string;
@@ -614,24 +599,6 @@ export function ProfessionalCabinet() {
     const hasCalendarAccess = hasCapability(profile, "calendar");
     const hasAnyCrmAccess = hasApplicationsAccess || hasCalendarAccess;
 
-    const { data: userActivityTypes } = useQuery<UserActivityTypeItem[]>({
-        queryKey: ["userActivityTypes", profile?.id],
-        queryFn: async () => {
-            const response = await http.get("/user-activity-types/my");
-            return response.data;
-        },
-        enabled: !!profile?.id && hasProfessionalCabinetAccess,
-        retry: false,
-    });
-
-    const activityList = React.useMemo(
-        () =>
-            (userActivityTypes ?? [])
-                .map((item) => item.activityType)
-                .filter(Boolean),
-        [userActivityTypes],
-    );
-
     const { data: orders, isLoading: isOrdersLoading } = useQuery<ChatOrder[]>({
         queryKey: ["providerOrders", profile?.id],
         queryFn: getProviderOrders,
@@ -677,16 +644,6 @@ export function ProfessionalCabinet() {
     const pendingCount = pendingOrders.length;
     const today = React.useMemo(() => new Date(), []);
     const headerDate = formatHeaderDate(today);
-    const activitySubtitle =
-        activityList.length > 0
-            ? `${activityList.length} ${pluralRu(
-                  activityList.length,
-                  "тип",
-                  "типа",
-                  "типов",
-              )} добавлено`
-            : "направления и настройки";
-
     const openOrder = (orderId: string) => {
         navigate(`/cabinet/applications?orderId=${orderId}`);
     };
@@ -855,14 +812,6 @@ export function ProfessionalCabinet() {
                         )}
                     </SectionCard>
                 )}
-
-                <SectionCard
-                    icon={<CategoryRoundedIcon />}
-                    title="Типы деятельности"
-                    subtitle={activitySubtitle}
-                    action="Открыть"
-                    onAction={() => navigate("/cabinet/activity-types")}
-                />
 
                 <SectionCard
                     icon={<SettingsRoundedIcon />}
