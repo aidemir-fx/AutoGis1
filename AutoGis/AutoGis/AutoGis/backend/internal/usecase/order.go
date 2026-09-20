@@ -194,10 +194,19 @@ func (uc *OrderUseCase) GetProviderOrders(ctx context.Context, providerID string
 	}
 
 	responses := make([]*domain.OrderResponse, 0, len(orders)+len(invitations))
+	seenOrderIDs := make(map[string]struct{}, len(orders)+len(invitations))
 	for _, order := range orders {
+		seenOrderIDs[order.ID] = struct{}{}
 		responses = append(responses, uc.orderToResponse(order))
 	}
 	for _, inv := range invitations {
+		if inv.Order == nil {
+			continue
+		}
+		if _, seen := seenOrderIDs[inv.Order.ID]; seen {
+			continue
+		}
+		seenOrderIDs[inv.Order.ID] = struct{}{}
 		// Treat pending invitation as an order in pending status for this provider
 		// (Normally we might want a specific flag to show it's an invitation)
 		resp := uc.orderToResponse(inv.Order)
