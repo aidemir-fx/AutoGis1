@@ -69,7 +69,7 @@ func CORSMiddleware(frontendURL string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
 		if origin != "" {
-			if _, ok := allowedOrigins[origin]; ok {
+			if _, ok := allowedOrigins[origin]; ok || isNgrokOrigin(origin) {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 			}
 			c.Writer.Header().Set("Vary", "Origin")
@@ -85,6 +85,11 @@ func CORSMiddleware(frontendURL string) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func isNgrokOrigin(origin string) bool {
+	parsed, err := url.Parse(origin)
+	return err == nil && parsed.Scheme == "https" && strings.HasSuffix(parsed.Hostname(), ".ngrok-free.dev")
 }
 
 func buildAllowedOrigins(frontendURL string) map[string]struct{} {

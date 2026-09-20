@@ -15,18 +15,9 @@ function resolveRawApiBaseURL() {
         return "/api";
     }
 
-    if (!import.meta.env.DEV) {
-        return explicitApiBaseURL;
-    }
-
-    try {
-        const parsed = new URL(explicitApiBaseURL, window.location.origin);
-        return isLocalDevelopmentHost(parsed.hostname)
-            ? "/api"
-            : explicitApiBaseURL;
-    } catch {
-        return explicitApiBaseURL;
-    }
+    // An explicit API URL is authoritative. This allows local development to
+    // use the real Go backend instead of the mock API in server.ts.
+    return explicitApiBaseURL;
 }
 
 const rawApiBaseURL = resolveRawApiBaseURL();
