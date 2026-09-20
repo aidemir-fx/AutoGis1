@@ -116,6 +116,7 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, customerID string, req 
 	// Create order
 	order := &domain.Order{
 		CustomerID:     customerID,
+		ProviderID:     &providerID,
 		ActivityTypeID: req.ActivityTypeID,
 		Name:           req.Name,
 		CarBrand:       req.CarBrand,

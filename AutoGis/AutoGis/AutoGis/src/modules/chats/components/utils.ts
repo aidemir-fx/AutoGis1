@@ -16,8 +16,19 @@ export function formatRelativeTime(value: string) {
 }
 
 export function getCompanion(order: ChatOrder, userId?: string): ChatUser {
-    if (!userId) return order.provider;
-    return order.customer.id === userId ? order.provider : order.customer;
+    if (!userId) return order.provider ?? order.customer;
+    if (order.customer?.id === userId) {
+        return order.provider ?? {
+            id: "unknown-provider",
+            phone: "Исполнитель",
+            name: "Исполнитель",
+        };
+    }
+    return order.customer ?? {
+        id: "unknown-customer",
+        phone: "Заказчик",
+        name: "Заказчик",
+    };
 }
 
 export function getStatusLabel(status: ChatMessage["status"]) {
