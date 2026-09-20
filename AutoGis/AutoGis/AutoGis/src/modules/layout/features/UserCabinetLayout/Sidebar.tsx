@@ -80,10 +80,13 @@ export const Sidebar = (props: SidebarProps) => {
         });
     }
 
-    if (hasProfessionalCabinetAccess) {
+    if (
+        hasProfessionalCabinetAccess ||
+        location.pathname.startsWith("/cabinet/professional")
+    ) {
         menuItems.push({
             id: "professional-settings",
-            label: "Настройки профессионального кабинет",
+            label: "Настройки профессионального кабинета",
             icon: <GearFillIcon />,
             path: "/cabinet/master-settings",
         });
