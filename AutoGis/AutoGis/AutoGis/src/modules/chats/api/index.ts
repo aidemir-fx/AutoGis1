@@ -81,21 +81,36 @@ function withAvatar(user: ChatUser, avatarMap: Record<string, string | null>): C
 
 async function applyAvatarsToOrders(orders: ChatOrder[]): Promise<ChatOrder[]> {
     if (orders.length === 0) return orders;
-    const accountIds = orders.flatMap((order) => [order.customer.id, order.provider.id]);
+    const accountIds = orders.flatMap((order) =>
+        [order.customer?.id, order.provider?.id].filter(
+            (id): id is string => Boolean(id),
+        ),
+    );
     const avatarMap = await getAccountAvatars(accountIds);
     return orders.map((order) => ({
         ...order,
-        customer: withAvatar(order.customer, avatarMap),
-        provider: withAvatar(order.provider, avatarMap),
+        customer: order.customer
+            ? withAvatar(order.customer, avatarMap)
+            : order.customer,
+        provider: order.provider
+            ? withAvatar(order.provider, avatarMap)
+            : order.provider,
     }));
 }
 
 async function applyAvatarsToOrder(order: ChatOrder): Promise<ChatOrder> {
-    const avatarMap = await getAccountAvatars([order.customer.id, order.provider.id]);
+    const accountIds = [order.customer?.id, order.provider?.id].filter(
+        (id): id is string => Boolean(id),
+    );
+    const avatarMap = await getAccountAvatars(accountIds);
     return {
         ...order,
-        customer: withAvatar(order.customer, avatarMap),
-        provider: withAvatar(order.provider, avatarMap),
+        customer: order.customer
+            ? withAvatar(order.customer, avatarMap)
+            : order.customer,
+        provider: order.provider
+            ? withAvatar(order.provider, avatarMap)
+            : order.provider,
     };
 }
 
