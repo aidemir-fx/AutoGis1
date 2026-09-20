@@ -25,6 +25,9 @@ import {
     UserIconWrapper,
 } from "./styles";
 import { AvatarUpload, Button, TextField } from "@common/components";
+import { useQuery } from "@tanstack/react-query";
+import { http } from "@common/lib/http";
+import { BusinessApplication } from "../ForBusiness/types";
 
 type ProfileFormData = {
     name: string;
@@ -35,6 +38,18 @@ export function Dashboard() {
     const navigate = useNavigate();
     const { profile, updateProfile, isUpdatingProfile } = useUserProfile();
     const { logout } = useAuth();
+
+    const { data: businessApplication } = useQuery({
+        queryKey: ["businessApplication", "me"],
+        queryFn: async () => {
+            const response = await http.get<{
+                application: BusinessApplication | null;
+            }>("/business-applications/me");
+            return response.data?.application ?? null;
+        },
+        enabled: !!profile?.id,
+        staleTime: 60_000,
+    });
 
     const form = useForm<ProfileFormData>({
         defaultValues: {
@@ -59,9 +74,18 @@ export function Dashboard() {
         profile,
         "professionalCabinet",
     );
+    const hasPendingProfessionalApplication =
+        businessApplication?.status === "pending" ||
+        businessApplication?.status === "needs_revision";
+    const canOpenProfessionalSection =
+        hasProfessionalCabinetAccess || hasPendingProfessionalApplication;
 
     const handleProfessionalCabinetClick = () => {
-        navigate("/cabinet/professional");
+        navigate(
+            hasProfessionalCabinetAccess
+                ? "/cabinet/professional"
+                : "/cabinet/for-business",
+        );
     };
 
     const handleForBusinessClick = () => {
@@ -156,8 +180,8 @@ export function Dashboard() {
                 </Stack>
             </Paper>
 
-            {/* Переход в профессиональный кабинет - только для активированных пользователей */}
-            {hasProfessionalCabinetAccess && (
+            {/* Профкабинет/заявка доступны сразу после подачи заявки. */}
+            {canOpenProfessionalSection && (
                 <Box>
                     <StyledPaper
                         sx={{
@@ -193,7 +217,9 @@ export function Dashboard() {
                                         Профессиональный кабинет
                                     </BlockTitle>
                                     <BlockSubtitle>
-                                        Типы деятельности и заявки
+                                        {hasProfessionalCabinetAccess
+                                            ? "Типы деятельности и заявки"
+                                            : "Заявка на рассмотрении"}
                                     </BlockSubtitle>
                                 </TitleWrapper>
                             </Box>
@@ -204,7 +230,7 @@ export function Dashboard() {
             )}
 
             {/* Неброский текстовый пункт "Для бизнеса" */}
-            {!hasProfessionalCabinetAccess && (
+            {!canOpenProfessionalSection && (
                 <Box sx={{ mt: 1, mb: 2, textAlign: "center" }}>
                     <MuiLink
                         component="button"
