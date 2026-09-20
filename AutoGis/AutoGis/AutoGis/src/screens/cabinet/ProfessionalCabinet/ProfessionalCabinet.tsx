@@ -3,7 +3,6 @@ import {
     Alert,
     Box,
     Button,
-    Chip,
     CircularProgress,
     Stack,
     Typography,
@@ -101,14 +100,6 @@ function formatTime(value: string) {
     return new Date(value).toLocaleTimeString("ru-RU", {
         hour: "2-digit",
         minute: "2-digit",
-    });
-}
-
-function formatHeaderDate(date: Date) {
-    return date.toLocaleDateString("ru-RU", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
     });
 }
 
@@ -642,8 +633,6 @@ export function ProfessionalCabinet() {
     }, [scheduleOrders]);
 
     const pendingCount = pendingOrders.length;
-    const today = React.useMemo(() => new Date(), []);
-    const headerDate = formatHeaderDate(today);
     const openOrder = (orderId: string) => {
         navigate(`/cabinet/applications?orderId=${orderId}`);
     };
@@ -682,76 +671,6 @@ export function ProfessionalCabinet() {
                         подключаться отдельно, по подписке.
                     </Alert>
                 )}
-
-                <Box
-                    sx={{
-                        background: ui.surface,
-                        border: `1px solid ${ui.border}`,
-                        borderRadius: "8px",
-                        px: 1.5,
-                        py: 1.25,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 1.25,
-                    }}
-                >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            minWidth: 0,
-                        }}
-                    >
-                        <IconBox tone={cabinetTone} size={38}>
-                            <RouteRoundedIcon />
-                        </IconBox>
-                        <Box sx={{ minWidth: 0 }}>
-                            <Typography
-                                component="h1"
-                                sx={{
-                                    color: ui.text,
-                                    fontSize: 18,
-                                    fontWeight: 900,
-                                    lineHeight: 1.1,
-                                }}
-                            >
-                                Кабинет
-                            </Typography>
-                            <Typography
-                                sx={{
-                                    color: ui.textMuted,
-                                    fontSize: 12,
-                                    mt: 0.25,
-                                    textTransform: "lowercase",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                {headerDate}
-                            </Typography>
-                        </Box>
-                    </Box>
-                    <Chip
-                        label={`${todayOrders.length} ${pluralRu(
-                            todayOrders.length,
-                            "запись",
-                            "записи",
-                            "записей",
-                        )}`}
-                        size="small"
-                        sx={{
-                            borderRadius: "8px",
-                            background: cabinetPalette.currentBg,
-                            color: cabinetPalette.currentText,
-                            border: `1px solid ${cabinetPalette.currentBorder}`,
-                            fontWeight: 650,
-                            flexShrink: 0,
-                        }}
-                    />
-                </Box>
 
                 {hasCalendarAccess && (
                     <SectionCard
