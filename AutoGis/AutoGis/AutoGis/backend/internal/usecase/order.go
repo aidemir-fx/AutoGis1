@@ -14,11 +14,12 @@ import (
 
 // OrderUseCase handles order business logic
 type OrderUseCase struct {
-	orderRepo            repository.OrderRepository
-	userRepo             repository.UserRepository
-	activityTypeRepo     repository.ActivityTypeRepository
-	userActivityTypeRepo repository.UserActivityTypeRepository
-	messageRepo          repository.ChatMessageRepository
+	orderRepo                   repository.OrderRepository
+	userRepo                    repository.UserRepository
+	activityTypeRepo            repository.ActivityTypeRepository
+	userActivityTypeRepo        repository.UserActivityTypeRepository
+	messageRepo                 repository.ChatMessageRepository
+	professionalApplicationRepo repository.ProfessionalApplicationRepository
 }
 
 func NewOrderUseCase(
@@ -27,13 +28,15 @@ func NewOrderUseCase(
 	activityTypeRepo repository.ActivityTypeRepository,
 	userActivityTypeRepo repository.UserActivityTypeRepository,
 	messageRepo repository.ChatMessageRepository,
+	professionalApplicationRepo repository.ProfessionalApplicationRepository,
 ) *OrderUseCase {
 	return &OrderUseCase{
-		orderRepo:            orderRepo,
-		userRepo:             userRepo,
-		activityTypeRepo:     activityTypeRepo,
-		userActivityTypeRepo: userActivityTypeRepo,
-		messageRepo:          messageRepo,
+		orderRepo:                   orderRepo,
+		userRepo:                    userRepo,
+		activityTypeRepo:            activityTypeRepo,
+		userActivityTypeRepo:        userActivityTypeRepo,
+		messageRepo:                 messageRepo,
+		professionalApplicationRepo: professionalApplicationRepo,
 	}
 }
 
@@ -65,7 +68,16 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, customerID string, req 
 	if err != nil {
 		return nil, apperrors.ErrUserNotFound
 	}
-	if !provider.IsProfessional {
+	providerIsProfessional := provider.IsProfessional
+	if !providerIsProfessional && uc.professionalApplicationRepo != nil {
+		application, applicationErr := uc.professionalApplicationRepo.GetLatestApplicationByUserID(ctx, providerID)
+		if applicationErr == nil && application != nil {
+			providerIsProfessional = application.Status == domain.ProfessionalApplicationStatusPending ||
+				application.Status == domain.ProfessionalApplicationStatusNeedsRevision ||
+				application.Status == domain.ProfessionalApplicationStatusApproved
+		}
+	}
+	if !providerIsProfessional {
 		return nil, apperrors.New("PROVIDER_NOT_PROFESSIONAL",
 			"Выбранный пользователь не является профессиональным исполнителем",
 			http.StatusBadRequest)
