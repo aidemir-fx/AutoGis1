@@ -13,6 +13,7 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { hasCapability } from "@common/lib/userAccess";
@@ -861,6 +862,14 @@ export function ProfessionalCabinet() {
                     subtitle={activitySubtitle}
                     action="Открыть"
                     onAction={() => navigate("/cabinet/activity-types")}
+                />
+
+                <SectionCard
+                    icon={<SettingsRoundedIcon />}
+                    title="Настройки профессионального кабинета"
+                    subtitle="настройки частного исполнителя"
+                    action="Открыть"
+                    onAction={() => navigate("/cabinet/master-settings")}
                 />
             </Box>
         </DashboardLayout>
