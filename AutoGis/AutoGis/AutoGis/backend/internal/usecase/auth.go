@@ -220,17 +220,20 @@ func (uc *AuthUseCase) userToResponse(user *domain.User) *domain.UserResponse {
 
 // UserUseCase handles user business logic
 type UserUseCase struct {
-	userRepo             repository.UserRepository
-	userActivityTypeRepo repository.UserActivityTypeRepository
+	userRepo                    repository.UserRepository
+	userActivityTypeRepo        repository.UserActivityTypeRepository
+	professionalApplicationRepo repository.ProfessionalApplicationRepository
 }
 
 func NewUserUseCase(
 	userRepo repository.UserRepository,
 	userActivityTypeRepo repository.UserActivityTypeRepository,
+	professionalApplicationRepo repository.ProfessionalApplicationRepository,
 ) *UserUseCase {
 	return &UserUseCase{
-		userRepo:             userRepo,
-		userActivityTypeRepo: userActivityTypeRepo,
+		userRepo:                    userRepo,
+		userActivityTypeRepo:        userActivityTypeRepo,
+		professionalApplicationRepo: professionalApplicationRepo,
 	}
 }
 
@@ -239,7 +242,7 @@ func (uc *UserUseCase) GetUser(ctx context.Context, id string) (*domain.UserResp
 	if err != nil {
 		return nil, apperrors.ErrUserNotFound
 	}
-	return uc.userToResponse(user), nil
+	return uc.userToResponseWithApplicationAccess(ctx, user), nil
 }
 
 func (uc *UserUseCase) UpdateUser(ctx context.Context, id string, req *domain.UpdateUserRequest) (*domain.UserResponse, error) {
@@ -342,5 +345,26 @@ func (uc *UserUseCase) GetAllUsers(ctx context.Context) ([]*domain.UserResponse,
 }
 
 func (uc *UserUseCase) userToResponse(user *domain.User) *domain.UserResponse {
+	return buildUserResponse(user)
+}
+
+func (uc *UserUseCase) userToResponseWithApplicationAccess(ctx context.Context, user *domain.User) *domain.UserResponse {
+	if user == nil || uc.professionalApplicationRepo == nil {
+		return buildUserResponse(user)
+	}
+	app, err := uc.professionalApplicationRepo.GetLatestApplicationByUserID(ctx, user.ID)
+	if err == nil && app != nil {
+		// Until a submitted application is rejected, the applicant uses the
+		// professional cabinet in full. Rejection revokes that access.
+		userCopy := *user
+		if app.Status == domain.ProfessionalApplicationStatusPending ||
+			app.Status == domain.ProfessionalApplicationStatusNeedsRevision ||
+			app.Status == domain.ProfessionalApplicationStatusApproved {
+			userCopy.IsProfessional = true
+		} else if app.Status == domain.ProfessionalApplicationStatusRejected {
+			userCopy.IsProfessional = false
+		}
+		return buildUserResponse(&userCopy)
+	}
 	return buildUserResponse(user)
 }

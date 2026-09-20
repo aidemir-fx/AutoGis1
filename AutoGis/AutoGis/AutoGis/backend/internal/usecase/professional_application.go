@@ -469,6 +469,18 @@ func (uc *ProfessionalApplicationUseCase) Decide(
 			moderationCase.DecisionStatus = domain.ProfessionalApplicationStatusRejected
 			moderationCase.ResolvedAt = &now
 			eventType = domain.ModerationCaseEventTypeDecisionRejected
+			user, err := uc.userRepo.GetByID(ctx, app.UserID)
+			if err != nil {
+				return err
+			}
+			if user.IsProfessional {
+				user.IsProfessional = false
+				if err := uc.userRepo.Update(ctx, user); err != nil {
+					return err
+				}
+			}
+			invalidateUser = true
+			invalidationUserID = app.UserID
 		case domain.ProfessionalApplicationDecisionNeedsRevision:
 			app.Status = domain.ProfessionalApplicationStatusNeedsRevision
 			app.ResolvedAt = nil

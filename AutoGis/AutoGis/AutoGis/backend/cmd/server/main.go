@@ -83,7 +83,7 @@ func main() {
 
 	// Create use cases
 	authUseCase := usecase.NewAuthUseCase(userRepo, professionalApplicationRepo, jwtService, cfg.JWTAccessExpire, cfg.JWTRefreshExpire)
-	userUseCase := usecase.NewUserUseCase(userRepo, userActivityTypeRepo)
+	userUseCase := usecase.NewUserUseCase(userRepo, userActivityTypeRepo, professionalApplicationRepo)
 	orderUseCase := usecase.NewOrderUseCase(orderRepo, userRepo, activityTypeRepo, userActivityTypeRepo, chatMessageRepo)
 	chatUseCase := usecase.NewChatUseCase(orderRepo, userRepo, chatMessageRepo)
 	searchUseCase := usecase.NewSearchUseCase(masterRepo, autoWashRepo, autoShopRepo, autoServiceRepo, userActivityTypeRepo, userRepo, activityTypeRepo)
