@@ -35,6 +35,10 @@ export const Sidebar = (props: SidebarProps) => {
         profile,
         "professionalChat",
     );
+    const hasProfessionalCabinetAccess = hasCapability(
+        profile,
+        "professionalCabinet",
+    );
     const hasApplicationsAccess = hasCapability(profile, "applications");
     const hasCalendarAccess = hasCapability(profile, "calendar");
 
@@ -73,6 +77,15 @@ export const Sidebar = (props: SidebarProps) => {
             label: "Профессиональный чат",
             icon: <WrenchIcon />,
             path: "/cabinet/chats?tab=professional",
+        });
+    }
+
+    if (hasProfessionalCabinetAccess) {
+        menuItems.push({
+            id: "professional-settings",
+            label: "Настройки профессионального кабинет",
+            icon: <GearFillIcon />,
+            path: "/cabinet/master-settings",
         });
     }
 
