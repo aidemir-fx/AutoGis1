@@ -181,24 +181,17 @@ function getInitials(name?: string | null): string {
 }
 
 
-interface SelectableProviderCardProps {
-    key?: string;
+interface ProviderCardProps {
     provider: Provider;
-    tenderMode: boolean;
-    isSelected: boolean;
-    onToggle: (provider: Provider) => void;
     onShowOnMap: (provider: Provider) => void;
     isCarouselItem?: boolean;
 }
 
-const SelectableProviderCard = ({
+const ProviderCard = ({
     provider,
-    tenderMode,
-    isSelected,
-    onToggle,
     onShowOnMap,
     isCarouselItem = false,
-}: SelectableProviderCardProps) => {
+}: ProviderCardProps) => {
     return (
         <div
             style={{
@@ -206,88 +199,8 @@ const SelectableProviderCard = ({
                 borderRadius: '16px',
                 flexShrink: isCarouselItem ? 0 : undefined,
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: isSelected
-                    ? '0 0 0 3px #2563eb, 0 12px 28px -4px rgba(37, 99, 235, 0.3)'
-                    : tenderMode
-                        ? '0 2px 10px rgba(0, 0, 0, 0.08)'
-                        : 'none',
-                transform: isSelected ? 'scale(1.015)' : 'none',
-                userSelect: 'none',
             }}
         >
-            {tenderMode && (
-                <>
-                    {/* Visual indicator badge in the top right corner */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            top: 10,
-                            right: 10,
-                            zIndex: 10,
-                            pointerEvents: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: isSelected ? '5px 12px 5px 8px' : '5px 10px 5px 8px',
-                            background: isSelected ? '#2563eb' : 'rgba(255, 255, 255, 0.96)',
-                            color: isSelected ? '#ffffff' : '#1d4ed8',
-                            border: isSelected ? '2px solid #1d4ed8' : '2px solid #3b82f6',
-                            borderRadius: '20px',
-                            boxShadow: isSelected
-                                ? '0 4px 14px rgba(37, 99, 235, 0.45)'
-                                : '0 2px 8px rgba(0, 0, 0, 0.15)',
-                            fontWeight: 700,
-                            fontSize: '12px',
-                            backdropFilter: 'blur(4px)',
-                            transition: 'all 0.15s ease',
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: 18,
-                                height: 18,
-                                borderRadius: '50%',
-                                background: isSelected ? '#ffffff' : '#eff6ff',
-                                color: '#2563eb',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: isSelected ? '12px' : '15px',
-                                fontWeight: 800,
-                                lineHeight: 1,
-                            }}
-                        >
-                            {isSelected ? '✓' : '+'}
-                        </div>
-                        <span>{isSelected ? 'Выбран' : 'Выбрать'}</span>
-                    </div>
-
-                    {/* Click interceptor across the entire card */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            inset: 0,
-                            zIndex: 8,
-                            cursor: 'pointer',
-                            borderRadius: '16px',
-                            background: isSelected
-                                ? 'rgba(37, 99, 235, 0.04)'
-                                : 'transparent',
-                        }}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onToggle(provider);
-                        }}
-                        title={
-                            isSelected
-                                ? 'Нажмите, чтобы убрать из рассылки'
-                                : 'Нажмите, чтобы добавить в рассылку'
-                        }
-                    />
-                </>
-            )}
-
             <ProviderShowcaseCard
                 provider={provider}
                 onShowOnMap={onShowOnMap}
@@ -564,42 +477,15 @@ export const MainpPageScreen = () => {
     );
 
 
-    const [tenderMode, setTenderMode] = useState(false);
-    const [selectedProviders, setSelectedProviders] = useState<Provider[]>([]);
-    const [showTenderHint, setShowTenderHint] = useState<boolean>(() => {
-        try {
-            return localStorage.getItem("hide_tender_hint") !== "true";
-        } catch {
-            return true;
-        }
-    });
-
-    const handleDismissHintPermanently = useCallback(() => {
-        try {
-            localStorage.setItem("hide_tender_hint", "true");
-        } catch (e) {
-            console.error(e);
-        }
-        setShowTenderHint(false);
-    }, []);
     const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
-
-    const toggleProviderSelection = useCallback((provider: Provider) => {
-        const targetId = provider.userId || provider.id;
-        setSelectedProviders(prev => {
-            const exists = prev.some(p => (p.userId || p.id) === targetId);
-            if (exists) return prev.filter(p => (p.userId || p.id) !== targetId);
-            return [...prev, provider];
-        });
-    }, []);
-
-    const handleDeselectAll = useCallback(() => {
-        setSelectedProviders([]);
-    }, []);
-
-    const handleSelectAllInRadius = useCallback(() => {
-        setSelectedProviders(filteredNearbyProviders || []);
-    }, [filteredNearbyProviders]);
+    const tenderMode = false;
+    const selectedProviders: Provider[] = [];
+    const showTenderHint = false;
+    const setTenderMode = (_value: boolean) => undefined;
+    const setSelectedProviders = (_value: Provider[]) => undefined;
+    const handleSelectAllInRadius = () => undefined;
+    const handleDeselectAll = () => undefined;
+    const handleDismissHintPermanently = () => undefined;
 
     const providersErrorMessage = useMemo(() => {
         if (!error) {
@@ -646,6 +532,7 @@ export const MainpPageScreen = () => {
                 <div
                     style={{
                         margin: '12px 0 20px',
+                        display: 'none',
                         padding: '16px 20px',
                         background: '#ffffff',
                         borderRadius: '16px',
@@ -911,15 +798,10 @@ export const MainpPageScreen = () => {
                                             <CarouselTrack>
                                                 {providers.length > 0 ? (
                                                     providers.map((provider) => {
-                                                        const targetId = provider.userId || provider.id;
-                                                        const isSelected = tenderMode && selectedProviders.some(p => (p.userId || p.id) === targetId);
                                                         return (
-                                                            <SelectableProviderCard
+                                                            <ProviderCard
                                                                 key={`${provider.activityType}-${provider.id}`}
                                                                 provider={provider}
-                                                                tenderMode={tenderMode}
-                                                                isSelected={isSelected}
-                                                                onToggle={toggleProviderSelection}
                                                                 onShowOnMap={handleProviderClick}
                                                                 isCarouselItem
                                                             />
@@ -947,15 +829,10 @@ export const MainpPageScreen = () => {
                                     {availableProviders.length > 0 ? (
                                         <AvailableGrid>
                                             {availableProviders.map((provider) => {
-                                                const targetId = provider.userId || provider.id;
-                                                const isSelected = tenderMode && selectedProviders.some(p => (p.userId || p.id) === targetId);
                                                 return (
-                                                    <SelectableProviderCard
+                                                    <ProviderCard
                                                         key={`available-${provider.activityType}-${provider.id}`}
                                                         provider={provider}
-                                                        tenderMode={tenderMode}
-                                                        isSelected={isSelected}
-                                                        onToggle={toggleProviderSelection}
                                                         onShowOnMap={handleProviderClick}
                                                     />
                                                 );
