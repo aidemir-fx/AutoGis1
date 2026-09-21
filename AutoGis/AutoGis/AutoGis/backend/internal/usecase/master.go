@@ -700,7 +700,20 @@ func (uc *MasterUseCase) GetMasterProfile(
 ) (*domain.MasterProfileResponse, error) {
 	master, err := uc.masterRepo.GetByUserID(ctx, userID)
 	if err != nil {
-		return nil, apperrors.ErrNotFound
+		// A professional application can grant access to PRO before the
+		// legacy master row exists. Create an editable empty profile on the
+		// first visit instead of returning 404 from the settings screen.
+		master = &domain.Master{
+			UserID:        userID,
+			Status:        "schedule",
+			CurrentStatus: "unavailable",
+			WorkingDays:   pq.StringArray{},
+			Professions:   pq.StringArray{},
+			AutoMarks:     pq.StringArray{},
+		}
+		if err := uc.masterRepo.Create(ctx, master); err != nil {
+			return nil, apperrors.ErrInternalServer
+		}
 	}
 
 	return uc.buildMasterProfileResponse(ctx, master)
