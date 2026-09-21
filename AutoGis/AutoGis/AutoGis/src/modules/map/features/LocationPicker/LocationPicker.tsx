@@ -118,17 +118,34 @@ export const LocationPicker = ({
 
             await loadYandexMaps();
 
-            const initialCoords =
+            const hasSavedCoordinates = Boolean(
                 initialCoordinates &&
-                !(
-                    initialCoordinates.x === 0 &&
-                    initialCoordinates.y === 0
-                )
-                    ? initialCoordinates
-                    : {
-                          x: 55.7558,
-                          y: 37.6176,
-                      };
+                    !(initialCoordinates.x === 0 && initialCoordinates.y === 0),
+            );
+            let initialCoords = hasSavedCoordinates
+                ? initialCoordinates!
+                : { x: 55.7558, y: 37.6176 };
+
+            // Resolve the browser location before creating the map so the
+            // user does not briefly see Moscow as the default center.
+            if (!hasSavedCoordinates && navigator.geolocation) {
+                try {
+                    const position = await new Promise<GeolocationPosition>(
+                        (resolve, reject) =>
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                enableHighAccuracy: true,
+                                timeout: 10000,
+                                maximumAge: 300000,
+                            }),
+                    );
+                    initialCoords = {
+                        x: position.coords.latitude,
+                        y: position.coords.longitude,
+                    };
+                } catch (geoError) {
+                    console.warn("Could not get user location:", geoError);
+                }
+            }
 
             // Give the dialog a frame to finish layout before map creation.
             await new Promise<void>((resolve) => {
@@ -168,48 +185,6 @@ export const LocationPicker = ({
 
             // Get address for initial location
             await getAddressFromCoordinates(initialCoords);
-
-            // If the user has no saved point yet, try to move map to current geolocation
-            // after the first render instead of blocking map initialization.
-            if (
-                (!initialCoordinates ||
-                    (initialCoordinates.x === 0 &&
-                        initialCoordinates.y === 0)) &&
-                navigator.geolocation
-            ) {
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        const userLocation = {
-                            x: position.coords.latitude,
-                            y: position.coords.longitude,
-                        };
-
-                        if (!mapInstanceRef.current || !markerRef.current) {
-                            return;
-                        }
-
-                        mapInstanceRef.current.setCenter(
-                            [userLocation.x, userLocation.y],
-                            15,
-                            { duration: 300 }
-                        );
-                        markerRef.current.geometry?.setCoordinates([
-                            userLocation.x,
-                            userLocation.y,
-                        ]);
-                        setCoordinates(userLocation);
-                        await getAddressFromCoordinates(userLocation);
-                    },
-                    (geoError) => {
-                        console.warn("Could not get user location:", geoError);
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 300000,
-                    }
-                );
-            }
 
             // Handle marker drag
             marker.events.add("dragend", async () => {
