@@ -124,10 +124,10 @@ export const LocationPicker = ({
             );
             let initialCoords = hasSavedCoordinates
                 ? initialCoordinates!
-                : { x: 55.7558, y: 37.6176 };
+                : { x: 42.9849, y: 47.5047 };
 
             // Resolve the browser location before creating the map so the
-            // user does not briefly see Moscow as the default center.
+            // user does not briefly see the fallback center.
             if (!hasSavedCoordinates && navigator.geolocation) {
                 try {
                     const position = await new Promise<GeolocationPosition>(
