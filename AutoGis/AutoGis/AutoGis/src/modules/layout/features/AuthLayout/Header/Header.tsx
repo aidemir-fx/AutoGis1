@@ -1,7 +1,7 @@
 import { AppBar } from "@mui/material";
 import { ArrowLeftIcon } from "@common/icons";
 import { BackButton, HeaderTitle, StyledToolbar } from "./styles";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@common/hooks/useAuth";
 import { hasCapability } from "@common/lib/userAccess";
 import { useUserProfile } from "@common/hooks";
@@ -15,12 +15,14 @@ type HeaderProps = {
 export const Header = (props: HeaderProps) => {
     const { title = "Вход в аккаунт" } = props;
     const navigate = useNavigate();
+    const { pathname } = useLocation();
     const { isAuthenticated } = useAuth();
     const { profile } = useUserProfile();
     const hasProfessionalChatAccess = hasCapability(
         profile,
         "professionalChat",
     );
+    const isProviderPage = pathname === "/provider";
 
     const handleBackClick = () => {
         goBackOrNavigate(navigate, "/");
@@ -39,7 +41,7 @@ export const Header = (props: HeaderProps) => {
                         <ArrowLeftIcon />
                     </BackButton>
                     <HeaderTitle>{title}</HeaderTitle>
-                    {isAuthenticated && (
+                    {isAuthenticated && !isProviderPage && (
                         <div
                             style={{
                                 marginLeft: "auto",

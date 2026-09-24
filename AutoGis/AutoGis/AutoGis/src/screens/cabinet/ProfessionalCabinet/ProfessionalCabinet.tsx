@@ -582,6 +582,27 @@ function SchedulePreview({
 export function ProfessionalCabinet() {
     const navigate = useNavigate();
     const { profile } = useUserProfile();
+    const hasAutoServiceActivity = profile?.activityTypes?.some(
+        (activity) => activity.name === "auto_service",
+    );
+    const settingsRoute =
+        profile?.accountType === "auto_service" ||
+        profile?.role === "auto_service" ||
+        hasAutoServiceActivity
+            ? "/cabinet/auto-service-settings"
+            : profile?.accountType === "auto_shop" || profile?.role === "auto_shop"
+              ? "/cabinet/auto-shop-settings"
+              : profile?.accountType === "auto_wash" || profile?.role === "auto_wash"
+                ? "/cabinet/auto-wash-settings"
+                : "/cabinet/master-settings";
+    const settingsSubtitle =
+        profile?.accountType === "auto_service" || profile?.role === "auto_service"
+            ? "настройки автосервиса"
+            : profile?.accountType === "auto_shop" || profile?.role === "auto_shop"
+              ? "настройки автомагазина"
+              : profile?.accountType === "auto_wash" || profile?.role === "auto_wash"
+                ? "настройки автомойки"
+                : "настройки частного исполнителя";
     const hasProfessionalCabinetAccess = hasCapability(
         profile,
         "professionalCabinet",
@@ -735,9 +756,9 @@ export function ProfessionalCabinet() {
                 <SectionCard
                     icon={<SettingsRoundedIcon />}
                     title="Настройки профессионального кабинета"
-                    subtitle="настройки частного исполнителя"
+                    subtitle={settingsSubtitle}
                     action="Открыть"
-                    onAction={() => navigate("/cabinet/master-settings")}
+                    onAction={() => navigate(settingsRoute)}
                 />
             </Box>
         </DashboardLayout>

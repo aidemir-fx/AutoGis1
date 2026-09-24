@@ -11,7 +11,6 @@ import {
     Dashboard,
     Settings,
     ActivityTypesSelection,
-    MasterSettings,
     AutoWashSettings,
     AutoServiceSettings,
     AutoServiceRegistration,
@@ -216,7 +215,7 @@ export function App() {
                                             path="/cabinet/master-settings"
                                             element={
                                                 <ProtectedRoute>
-                                                    <MasterSettings />
+                                                    <Settings />
                                                 </ProtectedRoute>
                                             }
                                         />

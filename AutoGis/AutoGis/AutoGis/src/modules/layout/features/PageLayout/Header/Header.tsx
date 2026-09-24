@@ -23,6 +23,7 @@ export const Header = () => {
     const { pathname } = useLocation();
     const isMobile = useMediaQuery(COMPACT_LAYOUT_MEDIA_QUERY);
     const { profile, isLoading } = useUserProfile();
+    const isProviderPage = pathname === "/provider";
     const hasProfessionalChatAccess = hasCapability(
         profile,
         "professionalChat",
@@ -75,13 +76,13 @@ export const Header = () => {
                                 }}
                             >
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                    <Button
+                                    {!isProviderPage && <Button
                                         variant="outlined"
                                         onClick={() => navigate("/cabinet/chats?tab=ordinary")}
                                     >
                                         Личный чат
-                                    </Button>
-                                    {hasProfessionalChatAccess && (
+                                    </Button>}
+                                    {!isProviderPage && hasProfessionalChatAccess && (
                                         <Button
                                             variant="outlined"
                                             onClick={() =>

@@ -41,6 +41,23 @@ export const Sidebar = (props: SidebarProps) => {
     );
     const hasApplicationsAccess = hasCapability(profile, "applications");
     const hasCalendarAccess = hasCapability(profile, "calendar");
+    const accountType = profile?.accountType ?? profile?.role;
+    const businessSettingsRoute =
+        accountType === "auto_service"
+            ? "/cabinet/auto-service-settings"
+            : accountType === "auto_shop"
+              ? "/cabinet/auto-shop-settings"
+              : accountType === "auto_wash"
+                ? "/cabinet/auto-wash-settings"
+                : "/cabinet/master-settings";
+    const settingsLabel =
+        accountType === "auto_service"
+            ? "Настройки автосервиса"
+            : accountType === "auto_shop"
+              ? "Настройки автомагазина"
+              : accountType === "auto_wash"
+                ? "Настройки автомойки"
+                : "Настройки профессионального кабинета";
 
     const handleLogoClick = () => {
         navigate("/");
@@ -86,9 +103,9 @@ export const Sidebar = (props: SidebarProps) => {
     ) {
         menuItems.push({
             id: "professional-settings",
-            label: "Настройки профессионального кабинета",
+            label: settingsLabel,
             icon: <GearFillIcon />,
-            path: "/cabinet/master-settings",
+            path: businessSettingsRoute,
         });
     }
 

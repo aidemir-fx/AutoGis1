@@ -7,6 +7,7 @@ import { useAuth, useUserProfile } from "@common/hooks";
 import {
     LogoutIcon,
     OrganizationIcon,
+    ChatIcon,
     UserIcon,
 } from "@common/icons";
 import { useForm, Controller } from "react-hook-form";
@@ -247,6 +248,32 @@ export function Dashboard() {
                     </MuiLink>
                 </Box>
             )}
+
+            <StyledPaper
+                sx={{
+                    p: 2,
+                    width: "100%",
+                    borderRadius: "14px",
+                    marginBottom: "24px",
+                    cursor: "pointer",
+                    boxShadow: "none",
+                    border: "1px solid #0000001a",
+                }}
+                onClick={() => navigate("/cabinet/chats?tab=support")}
+            >
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <ActivityTypeIconWrapper>
+                            <ChatIcon />
+                        </ActivityTypeIconWrapper>
+                        <TitleWrapper>
+                            <BlockTitle>Написать в поддержку</BlockTitle>
+                            <BlockSubtitle>Связаться с командой АвтоГис</BlockSubtitle>
+                        </TitleWrapper>
+                    </Box>
+                    <NavigateNextIcon />
+                </Box>
+            </StyledPaper>
 
             <Box sx={{ mt: 2 }}>
                 <Button

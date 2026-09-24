@@ -979,13 +979,10 @@ func (uc *MasterUseCase) GetAutoServiceProfile(ctx context.Context, userID strin
 
 	profile, err := uc.autoServiceRepo.GetByUserID(ctx, userID)
 	if err != nil {
-		return map[string]interface{}{
-			"id":      user.ID,
-			"phone":   user.Phone,
-			"name":    user.Name,
-			"role":    user.Role,
-			"profile": nil,
-		}, nil
+		profile = &domain.AutoService{UserID: userID, Status: "schedule", Services: pq.StringArray{}, Professions: pq.StringArray{}, WorkingDays: pq.StringArray{}, BrandSupport: pq.StringArray{}}
+		if err := uc.autoServiceRepo.Create(ctx, profile); err != nil {
+			return nil, apperrors.ErrInternalServer
+		}
 	}
 
 	groupRef, subtypeRef := uc.hydrateActivityRefs(ctx, profile.ActivitySubtypeID)
@@ -1107,13 +1104,10 @@ func (uc *MasterUseCase) GetAutoShopProfile(ctx context.Context, userID string) 
 
 	profile, err := uc.autoShopRepo.GetByUserID(ctx, userID)
 	if err != nil {
-		return map[string]interface{}{
-			"id":      user.ID,
-			"phone":   user.Phone,
-			"name":    user.Name,
-			"role":    user.Role,
-			"profile": nil,
-		}, nil
+		profile = &domain.AutoShop{UserID: userID, Status: "schedule", Services: pq.StringArray{}, WorkingDays: pq.StringArray{}}
+		if err := uc.autoShopRepo.Create(ctx, profile); err != nil {
+			return nil, apperrors.ErrInternalServer
+		}
 	}
 
 	groupRef, subtypeRef := uc.hydrateUserActivityRefs(ctx, userID, "auto_shop")
@@ -1211,13 +1205,10 @@ func (uc *MasterUseCase) GetAutoWashProfile(ctx context.Context, userID string) 
 
 	profile, err := uc.autoWashRepo.GetByUserID(ctx, userID)
 	if err != nil {
-		return map[string]interface{}{
-			"id":      user.ID,
-			"phone":   user.Phone,
-			"name":    user.Name,
-			"role":    user.Role,
-			"profile": nil,
-		}, nil
+		profile = &domain.AutoWash{UserID: userID, Status: "schedule", Services: pq.StringArray{}, WorkingDays: pq.StringArray{}, Payments: pq.StringArray{}}
+		if err := uc.autoWashRepo.Create(ctx, profile); err != nil {
+			return nil, apperrors.ErrInternalServer
+		}
 	}
 
 	groupRef, subtypeRef := uc.hydrateActivityRefs(ctx, profile.ActivitySubtypeID)

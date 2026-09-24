@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useUserProfile } from "@common/hooks";
 import { DashboardLayout } from "@modules/layout/features/UserCabinetLayout/DashboardLayout";
 
 // ──────────────────────────────────────────────
@@ -45,6 +46,15 @@ import { DashboardLayout } from "@modules/layout/features/UserCabinetLayout/Dash
 // ──────────────────────────────────────────────
 export const Dashboard: React.FC = () => {
     const navigate = useNavigate();
+    const { profile } = useUserProfile();
+    const settingsRoute =
+        profile?.role === "auto_service"
+            ? "/cabinet/auto-service-settings"
+            : profile?.role === "auto_shop"
+              ? "/cabinet/auto-shop-settings"
+              : profile?.role === "auto_wash"
+                ? "/cabinet/auto-wash-settings"
+                : "/cabinet/master-settings";
     const [orders, setOrders] = useState<any[]>([]);
 
     useEffect(() => {
@@ -122,7 +132,7 @@ export const Dashboard: React.FC = () => {
                 <Button
                     variant="outlined"
                     startIcon={<Wrench size={18} />}
-                    onClick={() => navigate("/cabinet/master-settings")}
+                    onClick={() => navigate(settingsRoute)}
                 >
                     Редактировать профиль
                 </Button>

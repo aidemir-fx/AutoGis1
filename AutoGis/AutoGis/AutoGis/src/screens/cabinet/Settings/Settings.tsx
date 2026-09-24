@@ -12,10 +12,13 @@ export function Settings() {
 
     if (!profile) return null;
 
-    switch (profile.role) {
+    // accountType is the canonical account discriminator. The role fallback
+    // keeps compatibility with older profiles stored before accountType was added.
+    switch (profile.accountType ?? profile.role) {
         case UserRole.CUSTOMER:
             return <CustomerSettings />;
         case UserRole.MASTER:
+        case "private_executor":
             return <MasterSettings />;
         case UserRole.AUTO_WASH:
             return <AutoWashSettings />;

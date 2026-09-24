@@ -23,10 +23,11 @@ import { COMPACT_LAYOUT_MEDIA_QUERY } from "../layoutViewport";
 type DashboardLayoutProps = {
     children: ReactNode;
     title?: string;
+    hideMobileHeaderActions?: boolean;
 };
 
 export const DashboardLayout = (props: DashboardLayoutProps) => {
-    const { children, title = "" } = props;
+    const { children, title = "", hideMobileHeaderActions = false } = props;
     const navigate = useNavigate();
     const { pathname } = useLocation();
     const isMobile = useMediaQuery(COMPACT_LAYOUT_MEDIA_QUERY);
@@ -45,43 +46,42 @@ export const DashboardLayout = (props: DashboardLayoutProps) => {
                 <>
                     <MobileHeader>
                         <Toolbar>
-                            <IconButton
-                                onClick={handleBackClick}
-                                aria-label="Назад"
-                                title="Назад"
-                                sx={{
-                                    width: 40,
-                                    height: 40,
-                                    flexShrink: 0,
-                                    color: "#4b5563",
-                                    "& svg": {
-                                        width: 22,
-                                        height: 22,
-                                    },
-                                }}
-                            >
-                                <ArrowLeftIcon />
-                            </IconButton>
-                            <Box
-                                component="button"
-                                type="button"
-                                aria-label="На главную"
-                                onClick={handleLogoClick}
-                                sx={{
-                                    flexGrow: 1,
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    background: "none",
-                                    border: 0,
-                                    p: 0,
-                                    cursor: "pointer",
-                                }}
-                            >
-                                <Logo>
-                                    <img src={LogoIcon} alt="Логотип" />
-                                </Logo>
-                            </Box>
-                            <Box sx={{ width: 40, flexShrink: 0 }} />
+                            {hideMobileHeaderActions ? null : (
+                                <>
+                                    <IconButton
+                                        onClick={handleBackClick}
+                                        aria-label="Назад"
+                                        title="Назад"
+                                        sx={{
+                                            width: 40,
+                                            height: 40,
+                                            flexShrink: 0,
+                                            color: "#4b5563",
+                                            "& svg": { width: 22, height: 22 },
+                                        }}
+                                    >
+                                        <ArrowLeftIcon />
+                                    </IconButton>
+                                    <Box
+                                        component="button"
+                                        type="button"
+                                        aria-label="На главную"
+                                        onClick={handleLogoClick}
+                                        sx={{
+                                            flexGrow: 1,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            background: "none",
+                                            border: 0,
+                                            p: 0,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        <Logo><img src={LogoIcon} alt="Логотип" /></Logo>
+                                    </Box>
+                                    <Box sx={{ width: 40, flexShrink: 0 }} />
+                                </>
+                            )}
                         </Toolbar>
                     </MobileHeader>
                     <Main style={{ paddingTop: "64px" }}>{children}</Main>

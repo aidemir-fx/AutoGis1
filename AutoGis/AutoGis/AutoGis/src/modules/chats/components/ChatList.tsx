@@ -35,7 +35,6 @@ const PILL_TABS: { value: ChatTab; label: string }[] = [
     { value: "ordinary", label: "Обычный" },
     { value: "professional", label: "Проф." },
     { value: "archive", label: "Архив" },
-    { value: "support", label: "Поддержка" },
 ];
 
 const tabsForUser = (hasProfessionalChatAccess: boolean) =>
